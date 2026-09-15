@@ -1,0 +1,46 @@
+{
+  "name": "narrativex-server",
+  "version": "1.0.0",
+  "description": "NarrativeX is a web-based system that collects social-media and news content, extracts and compares claims using NLP and semantic analysis, and tracks their evolution and spread. It categorizes claims based on available evidence and visualizes narrative and propagation patterns through an interactive dashboard.",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --hot src/index.ts",
+    "build": "bun build src/index.ts --outdir ./dist --target=bun",
+    "start": "bun ./dist/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SuhasKanwar/NarrativeX.git"
+  },
+  "author": {
+    "name": "Suhas Kanwar",
+    "email": "suhas.kanwar@gmail.com",
+    "url": "https://suhaskanwar.vercel.app"
+  },
+  "bugs": {
+    "url": "https://github.com/SuhasKanwar/NarrativeX/issues"
+  },
+  "homepage": "https://github.com/SuhasKanwar/NarrativeX#readme",
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/bun": "latest",
+    "@types/cors": "^2.8.19",
+    "@types/dotenv": "^8.2.3",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "axios": "^1.20.0",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "newsapi": "^2.4.1",
+    "node-cache": "^5.1.2"
+  }
+}
