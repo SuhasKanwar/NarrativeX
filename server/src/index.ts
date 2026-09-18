@@ -2,6 +2,8 @@ import express, { type Request, type Response } from 'express';
 import cors from 'cors';
 import { PORT } from './lib/config.ts';
 import logger from './middlewares/logger.ts';
+import authenticate from './middlewares/authenticate.ts';
+import authRouter from './routes/authRouter.ts';
 
 const app = express();
 
@@ -25,6 +27,8 @@ app.get('/health', (req: Request, res: Response) => {
         message: "NarrativeX API is healthy and running successfully.",
     });
 });
+
+app.use("/api/auth", authRouter);
 
 app.listen(PORT, (err) => {
     if (err) {
