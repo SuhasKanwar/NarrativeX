@@ -1,8 +1,8 @@
 import type { Request, Response } from "express";
 import bcrypt from "bcrypt";
-import { db } from "../prisma/db.ts";
-import { AuthProvider } from "../prisma/enums.ts";
-import { buildAuthResponse } from "../utils/auth.ts";
+import { db } from "../prisma/db";
+import { AuthProvider } from "../prisma/enums";
+import { buildAuthResponse } from "../utils/auth";
 
 export async function signUpHandler(req: Request, res: Response) {
     try {

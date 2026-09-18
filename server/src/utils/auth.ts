@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "../lib/config.ts";
-import type { AuthProvider } from "../prisma/enums.ts";
+import { JWT_SECRET } from "../lib/config";
+import type { AuthProvider } from "../prisma/enums";
 
 export function buildAuthResponse<T extends {
     id: string;
