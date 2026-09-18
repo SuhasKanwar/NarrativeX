@@ -141,6 +141,7 @@ export async function googleAuthHandler(req: Request, res: Response) {
                 provider: AuthProvider.GOOGLE,
                 imageUrl: imageUrl ?? existingUser.imageUrl,
                 password: existingUser.password ?? null,
+                updatedAt: new Date().toISOString(),
             });
 
             if (!updatedUser) {
