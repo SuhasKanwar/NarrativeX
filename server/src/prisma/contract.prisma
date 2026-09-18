@@ -5,6 +5,20 @@ enum AuthProvider {
   CREDENTIALS
 }
 
+enum Sender {
+  user
+  bot
+  system
+}
+
+enum ChatType {
+  text
+}
+
+enum ConversationVariant {
+  chat
+}
+
 model User {
   id        Char(24) @id @default(cuid(2))
   email     String   @unique
@@ -16,6 +30,39 @@ model User {
   createdAt DateTime @default(now())
   updatedAt temporal.updatedAt()
 
+  conversations Conversation[]
+
   @@index([email])
   @@index([createdAt])
+}
+
+model Conversation {
+  id          Char(36)            @id @default(uuid())
+  userId      Char(24)
+  title       String?
+  variant     ConversationVariant @default(chat)
+  startedAt   DateTime            @default(now())
+  lastUpdated temporal.updatedAt()
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chats Chat[]
+
+  @@index([userId])
+  @@index([lastUpdated])
+}
+
+model Chat {
+  id                 Char(36) @id @default(uuid())
+  type               ChatType @default(text)
+  conversationId     Char(36)
+  sender             Sender
+  content            String?
+  createdAt          DateTime @default(now())
+  updatedAt          temporal.updatedAt()
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([createdAt])
+  @@index([sender])
 }
