@@ -1,0 +1,21 @@
+// use prisma-8
+
+enum AuthProvider {
+  GOOGLE
+  CREDENTIALS
+}
+
+model User {
+  id        Char(24) @id @default(cuid(2))
+  email     String   @unique
+  name      String?
+  imageUrl  String?
+  password  String?
+  provider  AuthProvider
+  
+  createdAt DateTime @default(now())
+  updatedAt temporal.updatedAt()
+
+  @@index([email])
+  @@index([createdAt])
+}
