@@ -1,0 +1,12 @@
+FROM oven/bun:1
+
+WORKDIR /app
+COPY ./server/package.json /app/package.json
+COPY ./server/package-lock.json /app/package-lock.json
+RUN bun install
+
+COPY ./server /app
+EXPOSE 9000
+RUN bun run db:generate
+RUN bun run build
+CMD ["bun", "start"]
