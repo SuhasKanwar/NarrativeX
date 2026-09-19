@@ -49,26 +49,21 @@ def llama_node(state: AgentState) -> dict:
 
 def research_node(state: AgentState) -> dict:
     query = state.get("query", "")
-    iterations = state.get("iterations", 0)
-    
-    if iterations >= AGENT_CONFIG["MAX_RECURSION_LIMIT"]:
-        logger.warning("Max recursion limit reached for research_node.")
-        return {"metrics_data": "Max iterations reached. Fetching halted to prevent infinite recursion."}
-    
-    search_query = f"Geopolitical event '{query}' global supply chain impacts metrics and reports"
-    metrics = execute_search(search_query)
-    
-    return {"metrics_data": metrics, "iterations": iterations + 1}
+    search_query = f"{query} claims evidence sources news social media"
+    source_context = execute_search(search_query)
+
+    return {"source_context": source_context}
 
 def analysis_node(state: AgentState) -> dict:
     query = state.get("query", "")
-    metrics = state.get("metrics_data", "")
+    source_context = state.get("source_context", "")
     session_history = state.get("session_history", [])
     
     prompt = (
-        f"Based on the following real metrics and internet reports:\n{metrics}\n\n"
-        f"Address the user's query comprehensively: '{query}'. "
-        f"Synthesize the provided data to give an accurate and objective response, ensuring you reference the metrics to support your points."
+        f"The following search results are source leads, not verified evidence:\n{source_context}\n\n"
+        f"Analyze the request: '{query}'. Extract the relevant claims, distinguish what "
+        "the sources report from what is actually supported, and preserve uncertainty. "
+        "Do not claim that a search result proves a claim."
     )
     
     try:

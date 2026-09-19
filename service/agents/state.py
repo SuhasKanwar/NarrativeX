@@ -1,10 +1,10 @@
-from typing import TypedDict, Any
+from typing import Any, TypedDict
 
 class AgentState(TypedDict):
     query: str
     session_history: list[dict]
     classification: str
     reasoning: str
-    metrics_data: str
+    source_context: str
     final_response: Any
     iterations: int

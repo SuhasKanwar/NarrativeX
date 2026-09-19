@@ -1,16 +1,14 @@
-import os, sys
-
 from fastapi import FastAPI
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from utils.logger import logger
 from utils.exception import NarrativeXException
 
-from config import PORT, ALLOWED_ORIGINS
-from dotenv import load_dotenv
-
-load_dotenv()
+from config import ALLOWED_ORIGINS, HOST, PORT
 
 app = FastAPI()
 app.add_middleware(
@@ -48,4 +46,4 @@ def narrativex_exception_handler(request, exc: NarrativeXException):
     }
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=PORT)
+    uvicorn.run(app, host=HOST, port=PORT)

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from schemas.agent import QueryRequest, QueryResponse
 from agents.graph import agent_app
+from config.agent import AGENT_CONFIG
 from utils.logger import logger
 
 router = APIRouter(prefix="/api/agent", tags=["Agent"])
@@ -13,13 +14,16 @@ async def execute_query(request: QueryRequest):
             "session_history": request.session_history,
             "classification": "",
             "reasoning": "",
-            "metrics_data": "",
+            "source_context": "",
             "final_response": "",
             "iterations": 0
         }
         
         logger.info(f"Starting agent graph for query: {request.query}")
-        result = agent_app.invoke(initial_state)
+        result = agent_app.invoke(
+            initial_state,
+            {"recursion_limit": AGENT_CONFIG["MAX_RECURSION_LIMIT"]},
+        )
         
         return QueryResponse(
             success=True,
