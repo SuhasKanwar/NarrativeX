@@ -21,6 +21,10 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+from routers import agent
+
+app.include_router(agent.router)
+
 @app.get("/", tags=["Root"])
 def root() -> dict:
     return {
