@@ -1,7 +1,7 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import api from "@/lib/api";
+import httpClient from "@/lib/api";
 import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, NEXTAUTH_SECRET } from "@/lib/config";
 
 type GoogleProfile = {
@@ -53,12 +53,12 @@ export const authOptions: NextAuthOptions = {
 
                 try {
                     const response = isRegistering
-                        ? await api.post("/api/auth/signup", {
+                        ? await httpClient.post("/api/auth/signup", {
                               name,
                               email,
                               password,
                           })
-                        : await api.post("/api/auth/signin", {
+                        : await httpClient.post("/api/auth/signin", {
                               email,
                               password,
                           });
@@ -107,7 +107,7 @@ export const authOptions: NextAuthOptions = {
                     throw new Error("Google profile email is missing.");
                 }
 
-                const response = await api.post("/api/auth/google", {
+                const response = await httpClient.post("/api/auth/google", {
                     name: googleProfile.name,
                     email: googleProfile.email,
                     imageUrl: googleProfile.picture ?? null,
