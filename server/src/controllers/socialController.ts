@@ -9,13 +9,11 @@ import {
 
 export async function searchSocialHandler(req: Request, res: Response) {
   const rawTopics = req.body?.topics;
-  const topics = Array.isArray(rawTopics)
-    ? [...new Set(rawTopics.map((topic) => typeof topic === "string" ? topic.trim() : "").filter(Boolean))]
-    : [];
   const platforms = req.body?.platforms ?? SOCIAL_PLATFORMS;
   const limit = Number(req.body?.limit ?? 10);
 
-  if (!topics.length || topics.length > 10 || topics.some((topic) => topic.length > 100)) {
+  if (!Array.isArray(rawTopics) || !rawTopics.length || rawTopics.length > 10 ||
+      rawTopics.some((topic) => typeof topic !== "string" || !topic.trim() || topic.trim().length > 100)) {
     return res.status(400).json({
       success: false,
       message: "'topics' must contain 1 to 10 non-empty strings of at most 100 characters.",
@@ -32,6 +30,7 @@ export async function searchSocialHandler(req: Request, res: Response) {
     return res.status(400).json({ success: false, message: "'limit' must be an integer from 1 to 25." });
   }
 
+  const topics = [...new Set(rawTopics.map((topic) => topic.trim()))];
   const query = { topics, platforms: [...new Set(platforms)] as SocialPlatform[], limit };
   const cacheKey = CacheService.generateCacheKey("social_search", query);
   const cachedData = cacheService.get(cacheKey);
