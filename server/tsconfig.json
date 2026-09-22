@@ -29,7 +29,8 @@
     "noPropertyAccessFromIndexSignature": false,
     "resolveJsonModule": true,
     "types": [
-      "node"
+      "node",
+      "bun"
     ]
   },
   "exclude": [

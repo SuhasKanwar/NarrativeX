@@ -7,6 +7,7 @@ import authRouter from './routes/authRouter';
 import newsRouter from './routes/newsRouter';
 import eventsRouter from './routes/eventsRouter';
 import conversationRouter from './routes/conversationRouter';
+import socialRouter from './routes/socialRouter';
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.get('/health', (req: Request, res: Response) => {
 
 app.use("/api/auth", authRouter);
 app.use("/api/news", authenticate, newsRouter);
+app.use("/api/social", authenticate, socialRouter);
 app.use("/api/events", authenticate, eventsRouter);
 app.use("/api/conversation", authenticate, conversationRouter);
 
