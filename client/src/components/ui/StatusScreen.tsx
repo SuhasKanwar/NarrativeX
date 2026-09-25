@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight, LoaderCircle } from "lucide-react";
-import { Brand, SiteFooter } from "./SiteChrome";
+import { SiteFooter } from "./SiteChrome";
+import Logo from "./Logo";
 
 type StatusScreenProps = {
   code: string;
@@ -20,7 +21,7 @@ export default function StatusScreen({
   return (
     <div className="status-shell flex min-h-svh flex-col">
       <header className="section-wrap mx-auto w-[calc(100%-40px)] max-w-[1328px] md:w-[calc(100%-64px)] xl:w-[calc(100%-112px)] status-header py-9">
-        <Brand />
+        <Logo />
       </header>
       <main
         id="main-content"

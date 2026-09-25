@@ -86,7 +86,7 @@ export default function SourceExplorer() {
       id="sources"
     >
       <div
-        className="section-intro grid gap-6 md:grid-cols-2 md:items-end md:gap-x-12 xl:gap-x-20 [&>.eyebrow]:col-span-full md:[&>.eyebrow]:mb-2 [&>p:last-child]:max-w-[460px] [&>p:last-child]:text-sm [&>p:last-child]:leading-8 [&>p:last-child]:text-muted transition-[opacity,transform] duration-700 ease-out data-[visible=false]:translate-y-6 data-[visible=false]:opacity-0 motion-reduce:transform-none motion-reduce:opacity-100 motion-reduce:transition-none"
+        className="section-intro grid gap-6 md:grid-cols-2 md:items-end md:gap-x-12 xl:gap-x-20 [&>.eyebrow]:col-span-full md:[&>.eyebrow]:mb-2 [&>p:last-child]:max-w-[460px] [&>p:last-child]:text-sm [&>p:last-child]:leading-8 [&>p:last-child]:text-muted reveal-up"
         data-reveal
       >
         <p className="eyebrow text-[.66rem] font-semibold leading-relaxed tracking-[.14em] uppercase">

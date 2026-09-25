@@ -6,7 +6,8 @@ import {
   ScanText,
   GitBranch,
 } from "lucide-react";
-import { Brand, SiteFooter, SiteHeader } from "@/components/ui/SiteChrome";
+import { SiteFooter, SiteHeader } from "@/components/ui/SiteChrome";
+import Logo from "@/components/ui/Logo";
 import NarrativeNetwork from "@/components/ui/NarrativeNetwork";
 import ScrollEffects from "@/components/ui/ScrollEffects";
 import SourceExplorer from "@/components/home/SourceExplorer";
@@ -89,8 +90,9 @@ export default function Home() {
               {content.title[2]}
             </span>
             <span
-              className="hero-asterisk absolute right-0 -top-4 text-[4rem] leading-none text-accent motion-safe:animate-[spin_50s_linear_infinite] md:right-6 md:-top-7 md:text-[clamp(7rem,12vw,12rem)]"
+              className="hero-asterisk absolute right-0 -top-4 text-[4rem] leading-none text-accent motion-safe:animate-[spin_50s_linear_infinite] md:right-6 md:-top-7 md:text-[clamp(7rem,12vw,12rem)] [transform:translateY(var(--parallax-y,0px))]"
               aria-hidden="true"
+              data-parallax="0.12"
             >
               ✳
             </span>
@@ -120,8 +122,9 @@ export default function Home() {
           </div>
         </section>
         <section
-          className="source-strip flex flex-col items-start justify-between gap-5 border-b border-border py-8 md:flex-row md:items-center md:gap-8 md:py-10 [&>p]:text-xs [&>p]:leading-6 [&>p]:text-muted md:[&>p]:max-w-40 [&>div]:flex [&>div]:flex-wrap [&>div]:gap-x-7 [&>div]:gap-y-4 [&>div]:text-sm [&>div]:font-semibold [&>div]:tracking-tight md:[&>div]:gap-x-12 md:[&>div]:text-lg section-wrap mx-auto w-[calc(100%-40px)] max-w-[1328px] md:w-[calc(100%-64px)] xl:w-[calc(100%-112px)]"
+          className="source-strip flex flex-col items-start justify-between gap-5 border-b border-border py-8 md:flex-row md:items-center md:gap-8 md:py-10 [&>p]:text-xs [&>p]:leading-6 [&>p]:text-muted md:[&>p]:max-w-40 [&>div]:flex [&>div]:flex-wrap [&>div]:gap-x-7 [&>div]:gap-y-4 [&>div]:text-sm [&>div]:font-semibold [&>div]:tracking-tight md:[&>div]:gap-x-12 md:[&>div]:text-lg section-wrap mx-auto w-[calc(100%-40px)] max-w-[1328px] md:w-[calc(100%-64px)] xl:w-[calc(100%-112px)] reveal-up"
           aria-label={content.sourcesLabel}
+          data-reveal
         >
           <p>{content.sourcesLabel}</p>
           <div>
@@ -135,7 +138,7 @@ export default function Home() {
           id="approach"
         >
           <div
-            className="section-intro grid gap-6 md:grid-cols-2 md:items-end md:gap-x-12 xl:gap-x-20 [&>.eyebrow]:col-span-full md:[&>.eyebrow]:mb-2 [&>p:last-child]:max-w-[460px] [&>p:last-child]:text-sm [&>p:last-child]:leading-8 [&>p:last-child]:text-muted transition-[opacity,transform] duration-700 ease-out data-[visible=false]:translate-y-6 data-[visible=false]:opacity-0 motion-reduce:transform-none motion-reduce:opacity-100 motion-reduce:transition-none"
+            className="section-intro grid gap-6 md:grid-cols-2 md:items-end md:gap-x-12 xl:gap-x-20 [&>.eyebrow]:col-span-full md:[&>.eyebrow]:mb-2 [&>p:last-child]:max-w-[460px] [&>p:last-child]:text-sm [&>p:last-child]:leading-8 [&>p:last-child]:text-muted reveal-up"
             data-reveal
           >
             <p className="eyebrow text-[.66rem] font-semibold leading-relaxed tracking-[.14em] uppercase">
@@ -148,7 +151,7 @@ export default function Home() {
             {content.steps.map(
               ({ number, icon: Icon, title, description, tag }) => (
                 <article
-                  className="feature border-border py-7 first:pl-0 not-first:border-t md:px-8 md:py-9 md:not-first:border-t-0 md:not-first:border-l [&>h3]:my-4 [&>h3]:text-2xl [&>h3]:tracking-tight [&>.eyebrow]:text-[.6rem] [&>.eyebrow]:text-muted [&>p:last-child]:text-sm [&>p:last-child]:leading-7 [&>p:last-child]:text-muted transition-[opacity,transform] duration-700 ease-out data-[visible=false]:translate-y-6 data-[visible=false]:opacity-0 motion-reduce:transform-none motion-reduce:opacity-100 motion-reduce:transition-none"
+                  className="feature border-border py-7 first:pl-0 not-first:border-t md:px-8 md:py-9 md:not-first:border-t-0 md:not-first:border-l [&>h3]:my-4 [&>h3]:text-2xl [&>h3]:tracking-tight [&>.eyebrow]:text-[.6rem] [&>.eyebrow]:text-muted [&>p:last-child]:text-sm [&>p:last-child]:leading-7 [&>p:last-child]:text-muted reveal-up"
                   key={number}
                   data-reveal
                 >
@@ -171,7 +174,7 @@ export default function Home() {
           id="perspective"
         >
           <div className="section-wrap mx-auto w-[calc(100%-40px)] max-w-[1328px] md:w-[calc(100%-64px)] xl:w-[calc(100%-112px)] network-layout grid items-center gap-8 py-16 md:grid-cols-2 md:gap-12 md:py-22 [&_.eyebrow]:mb-8 [&_.eyebrow]:text-dark-muted [&_figure]:mx-auto [&_figure]:w-full [&_figure]:max-w-[520px] [&_figcaption]:flex [&_figcaption]:flex-col [&_figcaption]:gap-2.5 [&_figcaption]:text-center [&_figcaption]:text-[.62rem] [&_figcaption]:leading-7 [&_figcaption]:text-dark-muted [&_figcaption_span]:tracking-widest">
-            <div>
+            <div className="reveal-up" data-reveal>
               <p className="eyebrow text-[.66rem] font-semibold leading-relaxed tracking-[.14em] uppercase">
                 {content.network.label}
               </p>
@@ -190,7 +193,12 @@ export default function Home() {
                 ))}
               </ul>
             </div>
-            <figure>
+            <figure
+              className="reveal-up data-[visible=false]:scale-90 [transform:translateY(var(--parallax-y,0px))]"
+              data-reveal
+              data-reveal-delay="2"
+              data-parallax="0.06"
+            >
               <NarrativeNetwork />
               <figcaption>
                 <span>{content.network.badge}</span>
@@ -202,7 +210,7 @@ export default function Home() {
         <SourceExplorer />
         <ResearchSections />
         <section
-          className="closing overflow-hidden pt-16 md:pt-24 [&>h2]:mt-8 section-wrap mx-auto w-[calc(100%-40px)] max-w-[1328px] md:w-[calc(100%-64px)] xl:w-[calc(100%-112px)] transition-[opacity,transform] duration-700 ease-out data-[visible=false]:translate-y-6 data-[visible=false]:opacity-0 motion-reduce:transform-none motion-reduce:opacity-100 motion-reduce:transition-none"
+          className="closing overflow-hidden pt-16 md:pt-24 [&>h2]:mt-8 section-wrap mx-auto w-[calc(100%-40px)] max-w-[1328px] md:w-[calc(100%-64px)] xl:w-[calc(100%-112px)] reveal-up"
           data-reveal
         >
           <p className="eyebrow text-[.66rem] font-semibold leading-relaxed tracking-[.14em] uppercase">
@@ -219,7 +227,10 @@ export default function Home() {
               <ArrowUpRight size={20} />
             </Link>
           </div>
-          <Brand decorative />
+          <Logo
+            decorative
+            className="mt-16 gap-2 pb-8 text-[clamp(3.5rem,14vw,13rem)] leading-none md:mt-24 md:gap-4 md:pb-10 [&_svg]:size-[.9em]"
+          />
         </section>
       </main>
       <SiteFooter />

@@ -80,10 +80,7 @@ export default function ResearchSections() {
         className="audiences pt-8 pb-16 md:pt-11 md:pb-24 [&_h2]:mt-6 section-wrap mx-auto w-[calc(100%-40px)] max-w-[1328px] md:w-[calc(100%-64px)] xl:w-[calc(100%-112px)]"
         id="who-its-for"
       >
-        <div
-          data-reveal
-          className="transition-[opacity,transform] duration-700 ease-out data-[visible=false]:translate-y-6 data-[visible=false]:opacity-0 motion-reduce:transform-none motion-reduce:opacity-100 motion-reduce:transition-none"
-        >
+        <div data-reveal className="reveal-up">
           <p className="eyebrow text-[.66rem] font-semibold leading-relaxed tracking-[.14em] uppercase">
             {content.audiences.label}
           </p>
@@ -93,7 +90,7 @@ export default function ResearchSections() {
           {content.audiences.items.map((item) => (
             <article
               key={item.number}
-              className="audience-card rounded-sm border border-border bg-surface p-7 transition duration-300 hover:-translate-y-1.5 hover:bg-surface-raised [&_h3]:mt-10 [&_h3]:mb-5 [&_h3]:max-w-[260px] [&_h3]:text-3xl [&_h3]:leading-tight [&_h3]:tracking-tight [&>p]:text-sm [&>p]:leading-7 [&>p]:text-muted [&>.eyebrow]:mt-9 [&>.eyebrow]:block [&>.eyebrow]:text-[.52rem] transition-[opacity,transform] duration-700 ease-out data-[visible=false]:translate-y-6 data-[visible=false]:opacity-0 motion-reduce:transform-none motion-reduce:opacity-100 motion-reduce:transition-none"
+              className="audience-card rounded-sm border border-border bg-surface p-7 transition duration-300 hover:-translate-y-1.5 hover:bg-surface-raised [&_h3]:mt-10 [&_h3]:mb-5 [&_h3]:max-w-[260px] [&_h3]:text-3xl [&_h3]:leading-tight [&_h3]:tracking-tight [&>p]:text-sm [&>p]:leading-7 [&>p]:text-muted [&>.eyebrow]:mt-9 [&>.eyebrow]:block [&>.eyebrow]:text-[.52rem] reveal-up"
               data-reveal
             >
               <div className="audience-label flex justify-between text-xs [&>span:last-child]:text-muted">
@@ -111,7 +108,7 @@ export default function ResearchSections() {
       </section>
       <section className="principle bg-sage py-16 md:py-22 [&_blockquote]:my-9 [&_blockquote]:whitespace-pre-line [&_blockquote]:font-editorial [&_blockquote]:text-[clamp(2.5rem,5.2vw,5.4rem)] [&_blockquote]:leading-[1.13] [&_blockquote]:tracking-tight [&_blockquote]:italic [&_.section-wrap>div]:flex [&_.section-wrap>div]:flex-col [&_.section-wrap>div]:gap-6 md:[&_.section-wrap>div]:flex-row md:[&_.section-wrap>div]:items-end md:[&_.section-wrap>div]:justify-between md:[&_.section-wrap>div]:gap-12 [&_.section-wrap>div_p]:max-w-[520px] [&_.section-wrap>div_p]:text-sm [&_.section-wrap>div_p]:leading-8 [&_.section-wrap>div_span]:max-w-60 [&_.section-wrap>div_span]:text-xs [&_.section-wrap>div_span]:leading-6">
         <div
-          className="section-wrap mx-auto w-[calc(100%-40px)] max-w-[1328px] md:w-[calc(100%-64px)] xl:w-[calc(100%-112px)] transition-[opacity,transform] duration-700 ease-out data-[visible=false]:translate-y-6 data-[visible=false]:opacity-0 motion-reduce:transform-none motion-reduce:opacity-100 motion-reduce:transition-none"
+          className="section-wrap mx-auto w-[calc(100%-40px)] max-w-[1328px] md:w-[calc(100%-64px)] xl:w-[calc(100%-112px)] reveal-up"
           data-reveal
         >
           <p className="eyebrow text-[.66rem] font-semibold leading-relaxed tracking-[.14em] uppercase">
@@ -128,10 +125,7 @@ export default function ResearchSections() {
         className="faq grid gap-9 border-b border-border py-16 md:grid-cols-[1fr_1.3fr] md:gap-16 md:py-28 [&_h2]:mt-6 [&_.text-link]:mt-8 section-wrap mx-auto w-[calc(100%-40px)] max-w-[1328px] md:w-[calc(100%-64px)] xl:w-[calc(100%-112px)]"
         id="questions"
       >
-        <div
-          data-reveal
-          className="transition-[opacity,transform] duration-700 ease-out data-[visible=false]:translate-y-6 data-[visible=false]:opacity-0 motion-reduce:transform-none motion-reduce:opacity-100 motion-reduce:transition-none"
-        >
+        <div data-reveal className="reveal-up">
           <p className="eyebrow text-[.66rem] font-semibold leading-relaxed tracking-[.14em] uppercase">
             {content.faq.label}
           </p>
@@ -147,7 +141,7 @@ export default function ResearchSections() {
         <div>
           {content.faq.items.map((item) => (
             <details
-              className="faq-item border-b border-border first:border-t [&_summary]:flex [&_summary]:list-none [&_summary]:items-center [&_summary]:justify-between [&_summary]:gap-6 [&_summary]:py-6 [&_summary]:text-sm [&_summary]:leading-7 [&_summary::-webkit-details-marker]:hidden [&_svg]:transition-transform open:[&_svg]:rotate-45 [&>p]:pr-8 [&>p]:pb-6 [&>p]:text-sm [&>p]:leading-8 [&>p]:text-muted transition-[opacity,transform] duration-700 ease-out data-[visible=false]:translate-y-6 data-[visible=false]:opacity-0 motion-reduce:transform-none motion-reduce:opacity-100 motion-reduce:transition-none"
+              className="faq-item border-b border-border first:border-t [&_summary]:flex [&_summary]:list-none [&_summary]:items-center [&_summary]:justify-between [&_summary]:gap-6 [&_summary]:py-6 [&_summary]:text-sm [&_summary]:leading-7 [&_summary::-webkit-details-marker]:hidden [&_svg]:transition-transform open:[&_svg]:rotate-45 [&>p]:pr-8 [&>p]:pb-6 [&>p]:text-sm [&>p]:leading-8 [&>p]:text-muted reveal-up"
               key={item.question}
               data-reveal
             >

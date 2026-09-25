@@ -1,9 +1,8 @@
 import Link from "next/link";
-import { ArrowUpRight, Asterisk } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
+import Logo from "./Logo";
 
 const chrome = {
-  brand: "NarrativeX",
-  homeLabel: "NarrativeX home",
   skip: "Skip to content",
   menu: "Menu",
   navigation: [
@@ -16,31 +15,6 @@ const chrome = {
   copyright: "NarrativeX. Built for the curious.",
 };
 
-export function Brand({ decorative = false }: { decorative?: boolean }) {
-  const mark = (
-    <>
-      <Asterisk aria-hidden="true" strokeWidth={2.4} />
-      <span>{chrome.brand}</span>
-    </>
-  );
-  return decorative ? (
-    <div
-      className="brand inline-flex items-center gap-2 text-2xl font-bold tracking-[-.065em] [&_svg]:size-8 [&_svg]:text-accent brand-large mt-16 gap-2 pb-8 text-[clamp(3.5rem,14vw,13rem)] leading-none md:mt-24 md:gap-4 md:pb-10 [&_svg]:size-[.9em]"
-      aria-hidden="true"
-    >
-      {mark}
-    </div>
-  ) : (
-    <Link
-      href="/"
-      className="brand inline-flex items-center gap-2 text-2xl font-bold tracking-[-.065em] [&_svg]:size-8 [&_svg]:text-accent"
-      aria-label={chrome.homeLabel}
-    >
-      {mark}
-    </Link>
-  );
-}
-
 export function SiteHeader() {
   return (
     <>
@@ -51,7 +25,7 @@ export function SiteHeader() {
         {chrome.skip}
       </a>
       <header className="site-header flex items-center justify-between gap-6 border-b border-border py-6 md:py-7 section-wrap mx-auto w-[calc(100%-40px)] max-w-[1328px] md:w-[calc(100%-64px)] xl:w-[calc(100%-112px)]">
-        <Brand />
+        <Logo />
         <nav
           className="desktop-nav hidden items-center gap-8 text-xs md:flex [&_a:hover]:underline [&_a]:underline-offset-4"
           aria-label="Main navigation"

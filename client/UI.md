@@ -6,7 +6,7 @@ The landing, sign-in, sign-up, loading, not-found, runtime-error, and auth-error
 
 - Page copy and repeated items live in typed-by-inference objects and arrays above their components.
 - `src/app/globals.css` owns the semantic color palette, Tailwind theme, base styles, and animation keyframes. Use Tailwind token utilities such as `bg-background`, `text-muted`, and `border-border`; do not add component CSS or literal colors.
-- `components/ui` contains shared branding, status screens, the SVG network, and scroll effects. `components/home` contains the source explorer and research sections.
+- `components/ui/Logo.tsx` is the shared logo used by the landing, auth, and status screens. The same folder contains the status screens, SVG network, and scroll effects. `components/home` contains the source explorer and research sections.
 - Source tabs support arrow keys, Home, and End. FAQ uses native details elements. Scroll reveals use IntersectionObserver; content remains visible without JavaScript. Motion respects reduced-motion preferences. Reading progress uses native scroll timelines where supported.
 - The narrative graphic is explicitly illustrative. No fake live metrics or evidence verdicts are presented.
 

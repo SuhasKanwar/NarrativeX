@@ -11,7 +11,7 @@ import {
   EyeOff,
   LoaderCircle,
 } from "lucide-react";
-import { Brand } from "@/components/ui/SiteChrome";
+import Logo from "@/components/ui/Logo";
 import NarrativeNetwork from "@/components/ui/NarrativeNetwork";
 import { AUTH_CALLBACK_URL } from "@/lib/config";
 
@@ -133,12 +133,12 @@ export default function AuthPanel({
 
   return (
     <main
-      className="auth-layout grid min-h-svh md:grid-cols-2"
+      className="auth-layout grid min-h-svh md:h-svh md:grid-cols-2 md:overflow-hidden"
       id="main-content"
     >
-      <section className="auth-main flex min-h-svh flex-col px-6 py-6 md:px-[5vw] md:pt-9">
-        <Brand />
-        <div className="auth-form-wrap m-auto w-full max-w-[390px] py-9 motion-safe:animate-enter [&>h1]:whitespace-pre-line [&>h1]:text-[clamp(2.5rem,3.5vw,3.8rem)] [&>h1]:leading-[1.08] [&>h1]:tracking-[-.06em] [&>.eyebrow]:mb-4">
+      <section className="auth-main flex min-h-svh flex-col px-6 py-6 md:h-svh md:px-[5vw] md:py-7">
+        <Logo />
+        <div className="auth-form-wrap m-auto w-full max-w-[390px] py-5 motion-safe:animate-enter md:py-4 [@media(max-height:850px)]:scale-[.88] [@media(max-height:850px)]:py-0 [&>h1]:whitespace-pre-line [&>h1]:text-[clamp(2.5rem,3.5vw,3.8rem)] [&>h1]:leading-[1.08] [&>h1]:tracking-[-.06em] [&>.eyebrow]:mb-4">
           <Link
             className="text-link inline-flex items-center gap-3.5 text-xs hover:underline underline-offset-4 back-link mb-8 text-muted md:mb-10"
             href="/"
@@ -270,7 +270,7 @@ export default function AuthPanel({
           {shared.note}
         </p>
       </section>
-      <aside className="auth-visual my-3.5 mr-3.5 hidden flex-col justify-center overflow-hidden rounded-md bg-dark-surface px-[5vw] pt-18 pb-8 text-inverse md:flex [&>h2]:my-6 [&>p:not(.eyebrow)]:max-w-80 [&>p:not(.eyebrow)]:text-sm [&>p:not(.eyebrow)]:leading-7 [&>p:not(.eyebrow)]:text-dark-muted [&_.narrative-network]:mt-1 [&_.narrative-network]:max-h-[420px] bg-[linear-gradient(var(--dark-border)_1px,transparent_1px),linear-gradient(90deg,var(--dark-border)_1px,transparent_1px)] bg-size-[65px_65px]">
+      <aside className="auth-visual my-3.5 mr-3.5 hidden h-[calc(100svh-1.75rem)] flex-col justify-center overflow-hidden rounded-md bg-dark-surface px-[5vw] pt-12 pb-6 text-inverse md:flex [@media(max-height:850px)]:scale-[.94] [@media(max-height:850px)]:origin-center [&>h2]:my-6 [&>p:not(.eyebrow)]:max-w-80 [&>p:not(.eyebrow)]:text-sm [&>p:not(.eyebrow)]:leading-7 [&>p:not(.eyebrow)]:text-dark-muted [&_.narrative-network]:mt-1 [&_.narrative-network]:max-h-[420px] bg-[linear-gradient(var(--dark-border)_1px,transparent_1px),linear-gradient(90deg,var(--dark-border)_1px,transparent_1px)] bg-size-[65px_65px]">
         <p className="eyebrow text-[.66rem] font-semibold leading-relaxed tracking-[.14em] uppercase">
           {shared.visualLabel}
         </p>

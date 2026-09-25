@@ -52,7 +52,7 @@ export default function NarrativeNetwork() {
       />
       {edges.map(([a, b]) => (
         <line
-          className="network-edge stroke-dark-muted/40 [stroke-width:1.5]"
+          className="network-edge stroke-dark-muted/40 stroke-[1.5]"
           key={`${a}-${b}`}
           x1={nodes[a].x}
           y1={nodes[a].y}
