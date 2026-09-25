@@ -138,7 +138,7 @@ export default function AuthPanel({
     >
       <section className="auth-main flex min-h-svh flex-col px-6 py-6 md:h-svh md:px-[5vw] md:py-7">
         <Logo />
-        <div className="auth-form-wrap m-auto w-full max-w-[390px] py-5 motion-safe:animate-enter md:py-4 [@media(max-height:850px)]:scale-[.88] [@media(max-height:850px)]:py-0 [&>h1]:whitespace-pre-line [&>h1]:text-[clamp(2.5rem,3.5vw,3.8rem)] [&>h1]:leading-[1.08] [&>h1]:tracking-[-.06em] [&>.eyebrow]:mb-4">
+        <div className="auth-form-wrap m-auto w-full max-w-97.5 py-5 motion-safe:animate-enter md:py-4 [@media(max-height:850px)]:scale-[.88] [@media(max-height:850px)]:py-0 [&>h1]:whitespace-pre-line [&>h1]:text-[clamp(2.5rem,3.5vw,3.8rem)] [&>h1]:leading-[1.08] [&>h1]:tracking-[-.06em] [&>.eyebrow]:mb-4">
           <Link
             className="text-link inline-flex items-center gap-3.5 text-xs hover:underline underline-offset-4 back-link mb-8 text-muted md:mb-10"
             href="/"
@@ -156,7 +156,7 @@ export default function AuthPanel({
           {googleEnabled && (
             <>
               <button
-                className="button inline-flex min-h-[54px] items-center justify-center gap-7 rounded-sm border border-transparent px-6 py-3.5 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 [&_svg]:transition-transform hover:[&_svg]:translate-x-0.5 hover:[&_svg]:-translate-y-0.5 button-outline border-border bg-surface-raised hover:bg-surface google-button w-full gap-3.5"
+                className="button inline-flex min-h-13.5 items-center justify-center gap-7 rounded-sm border border-transparent px-6 py-3.5 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 [&_svg]:transition-transform hover:[&_svg]:translate-x-0.5 hover:[&_svg]:-translate-y-0.5 button-outline border-border bg-surface-raised hover:bg-surface google-button w-full"
                 disabled={pending}
                 onClick={googleSignIn}
               >
@@ -178,7 +178,7 @@ export default function AuthPanel({
               .filter((field) => field.name !== "name" || mode === "signup")
               .map((field) => (
                 <div
-                  className="form-field mb-5 [&>label]:mb-2 [&>label]:block [&>label]:text-xs [&>label]:font-semibold [&_input]:min-h-[50px] [&_input]:w-full [&_input]:rounded-sm [&_input]:border [&_input]:border-border [&_input]:bg-surface-raised [&_input]:px-4 [&_input]:py-3 [&_input]:text-sm [&_input]:text-foreground [&_input::placeholder]:text-muted [&_input[name=password]]:pr-12"
+                  className="form-field mb-5 [&>label]:mb-2 [&>label]:block [&>label]:text-xs [&>label]:font-semibold [&_input]:min-h-12.5 [&_input]:w-full [&_input]:rounded-sm [&_input]:border [&_input]:border-border [&_input]:bg-surface-raised [&_input]:px-4 [&_input]:py-3 [&_input]:text-sm [&_input]:text-foreground [&_input::placeholder]:text-muted [&_input[name=password]]:pr-12"
                   key={field.name}
                 >
                   <label htmlFor={field.name}>{field.label}</label>
@@ -246,7 +246,7 @@ export default function AuthPanel({
               </p>
             )}
             <button
-              className="button inline-flex min-h-[54px] items-center justify-center gap-7 rounded-sm border border-transparent px-6 py-3.5 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 [&_svg]:transition-transform hover:[&_svg]:translate-x-0.5 hover:[&_svg]:-translate-y-0.5 button-primary bg-accent text-accent-ink hover:bg-accent-hover auth-submit mt-2 w-full justify-between"
+              className="button inline-flex min-h-13.5 items-center justify-center gap-7 rounded-sm border border-transparent px-6 py-3.5 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 [&_svg]:transition-transform hover:[&_svg]:translate-x-0.5 hover:[&_svg]:-translate-y-0.5 button-primary bg-accent text-accent-ink hover:bg-accent-hover auth-submit mt-2 w-full"
               type="submit"
               disabled={pending}
             >
@@ -270,7 +270,7 @@ export default function AuthPanel({
           {shared.note}
         </p>
       </section>
-      <aside className="auth-visual my-3.5 mr-3.5 hidden h-[calc(100svh-1.75rem)] flex-col justify-center overflow-hidden rounded-md bg-dark-surface px-[5vw] pt-12 pb-6 text-inverse md:flex [@media(max-height:850px)]:scale-[.94] [@media(max-height:850px)]:origin-center [&>h2]:my-6 [&>p:not(.eyebrow)]:max-w-80 [&>p:not(.eyebrow)]:text-sm [&>p:not(.eyebrow)]:leading-7 [&>p:not(.eyebrow)]:text-dark-muted [&_.narrative-network]:mt-1 [&_.narrative-network]:max-h-[420px] bg-[linear-gradient(var(--dark-border)_1px,transparent_1px),linear-gradient(90deg,var(--dark-border)_1px,transparent_1px)] bg-size-[65px_65px]">
+      <aside className="auth-visual my-3.5 mr-3.5 hidden h-[calc(100svh-1.75rem)] flex-col justify-center overflow-hidden rounded-md bg-dark-surface px-[5vw] pt-12 pb-6 text-inverse md:flex [@media(max-height:850px)]:scale-[.94] [@media(max-height:850px)]:origin-center [&>h2]:my-6 [&>p:not(.eyebrow)]:max-w-80 [&>p:not(.eyebrow)]:text-sm [&>p:not(.eyebrow)]:leading-7 [&>p:not(.eyebrow)]:text-dark-muted [&_.narrative-network]:mt-1 [&_.narrative-network]:max-h-105 bg-[linear-gradient(var(--dark-border)_1px,transparent_1px),linear-gradient(90deg,var(--dark-border)_1px,transparent_1px)] bg-size-[65px_65px]">
         <p className="eyebrow text-[.66rem] font-semibold leading-relaxed tracking-[.14em] uppercase">
           {shared.visualLabel}
         </p>

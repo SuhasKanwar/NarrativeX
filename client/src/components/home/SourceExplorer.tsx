@@ -82,11 +82,11 @@ export default function SourceExplorer() {
   }
   return (
     <section
-      className="source-explorer pt-16 pb-8 md:pt-28 md:pb-16 section-wrap mx-auto w-[calc(100%-40px)] max-w-[1328px] md:w-[calc(100%-64px)] xl:w-[calc(100%-112px)]"
+      className="source-explorer pt-16 pb-8 md:pt-28 md:pb-16 section-wrap mx-auto w-[calc(100%-40px)] max-w-332 md:w-[calc(100%-64px)] xl:w-[calc(100%-112px)]"
       id="sources"
     >
       <div
-        className="section-intro grid gap-6 md:grid-cols-2 md:items-end md:gap-x-12 xl:gap-x-20 [&>.eyebrow]:col-span-full md:[&>.eyebrow]:mb-2 [&>p:last-child]:max-w-[460px] [&>p:last-child]:text-sm [&>p:last-child]:leading-8 [&>p:last-child]:text-muted reveal-up"
+        className="section-intro grid gap-6 md:grid-cols-2 md:items-end md:gap-x-12 xl:gap-x-20 [&>.eyebrow]:col-span-full md:[&>.eyebrow]:mb-2 [&>p:last-child]:max-w-115 [&>p:last-child]:text-sm [&>p:last-child]:leading-8 [&>p:last-child]:text-muted reveal-up"
         data-reveal
       >
         <p className="eyebrow text-[.66rem] font-semibold leading-relaxed tracking-[.14em] uppercase">
@@ -119,7 +119,7 @@ export default function SourceExplorer() {
       </div>
       <div
         key={source.id}
-        className="source-panel grid min-h-[340px] items-center gap-7 py-8 md:grid-cols-[.7fr_1.5fr] md:py-11 xl:grid-cols-[.7fr_1.5fr_1fr] xl:gap-11 motion-safe:animate-enter [&_h3]:my-4 [&_h3]:text-3xl [&_h3]:tracking-tight [&_p:not(.eyebrow)]:text-sm [&_p:not(.eyebrow)]:leading-7 [&_p:not(.eyebrow)]:text-muted"
+        className="source-panel grid min-h-85 items-center gap-7 py-8 md:grid-cols-[.7fr_1.5fr] md:py-11 xl:grid-cols-[.7fr_1.5fr_1fr] xl:gap-11 motion-safe:animate-enter [&_h3]:my-4 [&_h3]:text-3xl [&_h3]:tracking-tight [&_p:not(.eyebrow)]:text-sm [&_p:not(.eyebrow)]:leading-7 [&_p:not(.eyebrow)]:text-muted"
         role="tabpanel"
         id={`source-panel-${source.id}`}
         aria-labelledby={`source-tab-${source.id}`}

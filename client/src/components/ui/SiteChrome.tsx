@@ -19,12 +19,12 @@ export function SiteHeader() {
   return (
     <>
       <a
-        className="skip-link fixed top-2.5 left-2.5 z-50 -translate-y-[180%] bg-foreground p-3 text-inverse focus:translate-y-0"
+        className="skip-link fixed top-2.5 left-2.5 z-50 translate-y-[-180%] bg-foreground p-3 text-inverse focus:translate-y-0"
         href="#main-content"
       >
         {chrome.skip}
       </a>
-      <header className="site-header flex items-center justify-between gap-6 border-b border-border py-6 md:py-7 section-wrap mx-auto w-[calc(100%-40px)] max-w-[1328px] md:w-[calc(100%-64px)] xl:w-[calc(100%-112px)]">
+      <header className="site-header flex items-center justify-between gap-6 border-b border-border py-6 md:py-7 section-wrap mx-auto w-[calc(100%-40px)] max-w-332 md:w-[calc(100%-64px)] xl:w-[calc(100%-112px)]">
         <Logo />
         <nav
           className="desktop-nav hidden items-center gap-8 text-xs md:flex [&_a:hover]:underline [&_a]:underline-offset-4"
@@ -71,7 +71,7 @@ export function SiteHeader() {
 
 export function SiteFooter() {
   return (
-    <footer className="site-footer flex flex-col justify-between gap-2 border-t border-border py-6 text-[.65rem] leading-6 text-muted md:flex-row md:gap-5 section-wrap mx-auto w-[calc(100%-40px)] max-w-[1328px] md:w-[calc(100%-64px)] xl:w-[calc(100%-112px)]">
+    <footer className="site-footer flex flex-col justify-between gap-2 border-t border-border py-6 text-[.65rem] leading-6 text-muted md:flex-row md:gap-5 section-wrap mx-auto w-[calc(100%-40px)] max-w-332 md:w-[calc(100%-64px)] xl:w-[calc(100%-112px)]">
       <span>{chrome.footer}</span>
       <span>
         © {new Date().getFullYear()} {chrome.copyright}
