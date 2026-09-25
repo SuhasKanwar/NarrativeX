@@ -24,19 +24,35 @@ const edges = [
   [4, 8],
 ];
 
+const nodeColors: Record<string, string> = {
+  origin: "fill-accent",
+  claim: "fill-sage",
+  conversation: "fill-dark-surface stroke-dark-muted",
+};
+
 export default function NarrativeNetwork() {
   return (
     <svg
-      className="narrative-network"
+      className="narrative-network block w-full"
       viewBox="0 0 520 460"
       fill="none"
       aria-hidden="true"
     >
-      <circle className="network-orbit" cx="250" cy="230" r="178" />
-      <circle className="network-orbit" cx="250" cy="230" r="110" />
+      <circle
+        className="network-orbit stroke-dark-border [stroke-dasharray:2_8]"
+        cx="250"
+        cy="230"
+        r="178"
+      />
+      <circle
+        className="network-orbit stroke-dark-border [stroke-dasharray:2_8]"
+        cx="250"
+        cy="230"
+        r="110"
+      />
       {edges.map(([a, b]) => (
         <line
-          className="network-edge"
+          className="network-edge stroke-dark-muted/40 [stroke-width:1.5]"
           key={`${a}-${b}`}
           x1={nodes[a].x}
           y1={nodes[a].y}
@@ -44,17 +60,22 @@ export default function NarrativeNetwork() {
           y2={nodes[b].y}
         />
       ))}
-      <circle className="network-pulse" cx="250" cy="230" r="58" />
+      <circle
+        className="network-pulse origin-[250px_230px] stroke-accent opacity-40 motion-safe:animate-signal"
+        cx="250"
+        cy="230"
+        r="58"
+      />
       {nodes.map((node, i) => (
         <g key={i}>
           <circle
-            className={`network-node node-${node.type}`}
+            className={nodeColors[node.type]}
             cx={node.x}
             cy={node.y}
             r={node.r}
           />
           <circle
-            className="node-center"
+            className="node-center fill-inverse"
             cx={node.x}
             cy={node.y}
             r={i === 0 ? 5 : 2}
