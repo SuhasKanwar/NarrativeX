@@ -12,7 +12,7 @@ The landing, sign-in, sign-up, loading, not-found, runtime-error, and auth-error
 
 ## Authentication
 
-The forms use the existing NextAuth credentials provider with `register=true` for signup. Google is shown only when its server-side credentials exist. Success returns to `/` because there is no dashboard route yet. Original backend contracts are preserved. Live credentials/OAuth success still requires a running backend, database, and valid provider configuration.
+The forms use the existing NextAuth credentials provider with `register=true` for signup. Google is shown only when its server-side credentials exist. Auth pages remain accessible with an existing session so people can switch accounts. Success returns to `/` because there is no dashboard route yet. Original backend contracts are preserved. Live credentials/OAuth success still requires a running backend, database, and valid provider configuration.
 
 ## Validation
 

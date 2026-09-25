@@ -1,6 +1,4 @@
-import { redirect } from "next/navigation";
 import StatusScreen from "@/components/ui/StatusScreen";
-import { getAuthSession } from "@/lib/session";
 
 const errorMessages: Record<string, string> = {
   AccessDenied:
@@ -24,12 +22,6 @@ export default async function AuthErrorPage({
 }: {
   searchParams?: Promise<{ error?: string }>;
 }) {
-  const session = await getAuthSession();
-
-  if (session) {
-    redirect("/");
-  }
-
   const code = (await searchParams)?.error ?? "Default";
   const message = errorMessages[code] ?? errorMessages.Default;
 
