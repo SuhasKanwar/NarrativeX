@@ -4,7 +4,7 @@ import httpx
 
 from config import SERVER_BASE_URL
 
-SOCIAL_PLATFORMS = {"reddit", "bluesky", "hackernews"}
+SOCIAL_PLATFORMS = ("reddit", "bluesky", "hackernews")
 
 
 def _request(method: str, path: str, access_token: str | None, **kwargs) -> dict[str, Any]:

@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -14,7 +15,7 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
+    allow_credentials=ALLOWED_ORIGINS != ["*"],
     allow_methods=["*"],
     allow_headers=["*"]
 )
@@ -40,10 +41,10 @@ def health() -> dict:
 @app.exception_handler(NarrativeXException)
 def narrativex_exception_handler(request, exc: NarrativeXException):
     logger.error(f"Error occurred in script: {exc.file_name} at line: {exc.line_number} with message: {exc.error_message}")
-    return {
+    return JSONResponse(status_code=500, content={
         "success": False,
         "message": f"Error occurred in script: {exc.file_name} at line: {exc.line_number} with message: {exc.error_message}"
-    }
+    })
 
 if __name__ == "__main__":
     uvicorn.run(app, host=HOST, port=PORT)

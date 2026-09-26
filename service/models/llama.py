@@ -32,7 +32,7 @@ class Llama():
             response = self.chain.invoke({
                 "history": history,
                 "input": prompt,
-                "context": "" # SUHAS: no context passed for now, need to be passed from the agents eventually in case there is need | no need for now
+                "context": ""
             })
             text = response.content if hasattr(response, "content") else str(response)
             return {"text": text}

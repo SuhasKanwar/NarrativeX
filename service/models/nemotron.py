@@ -47,7 +47,7 @@ class Nemotron():
             for chunk in self.chain.stream({
                 "history": history,
                 "input": prompt,
-                "context": "" # SUHAS: no context passed for now, need to be passed from the agents eventually
+                "context": ""
             }):
                 if chunk.additional_kwargs and "reasoning_content" in chunk.additional_kwargs:
                     reasoning_content += chunk.additional_kwargs["reasoning_content"]
