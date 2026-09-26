@@ -462,7 +462,7 @@ export default function ResearchStudio({
             retry={() => setRevision((n) => n + 1)}
           />
         ) : history.length ? (
-          <div className="space-y-2">
+            <div className="motion-stagger space-y-2">
             {history.map((item) => (
               <Link
                 key={item.id}

@@ -173,7 +173,7 @@ export default function AuthPanel({
               </div>
             </>
           )}
-          <form onSubmit={submit} aria-busy={pending}>
+          <form onSubmit={submit} aria-busy={pending} className="motion-stagger">
             {content.fields
               .filter((field) => field.name !== "name" || mode === "signup")
               .map((field) => (
@@ -276,7 +276,7 @@ export default function AuthPanel({
         </p>
         <h2>{shared.visualTitle}</h2>
         <p>{shared.visualDescription}</p>
-        <NarrativeNetwork />
+        <div className="motion-safe:animate-float"><NarrativeNetwork /></div>
         <span className="eyebrow text-[.66rem] font-semibold leading-relaxed tracking-[.14em] uppercase auth-visual-caption text-center text-[.56rem] text-dark-muted">
           {shared.visualCaption}
         </span>

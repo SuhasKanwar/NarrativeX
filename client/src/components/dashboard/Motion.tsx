@@ -14,11 +14,9 @@ export function Reveal({
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const element = ref.current;
-    if (
-      !element ||
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    )
-      return;
+    if (!element) return;
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (preference.matches) return;
     element.dataset.visible = "false";
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -30,7 +28,14 @@ export function Reveal({
       { threshold: 0.05 },
     );
     observer.observe(element);
-    return () => observer.disconnect();
+    const show = () => {
+      if (preference.matches) {
+        element.dataset.visible = "true";
+        observer.disconnect();
+      }
+    };
+    preference.addEventListener("change", show);
+    return () => { observer.disconnect(); preference.removeEventListener("change", show); };
   }, []);
   return (
     <div
@@ -58,7 +63,7 @@ export function FeedState({
     return (
       <div
         role="status"
-        className="space-y-4 rounded-2xl border border-border p-6"
+        className="motion-stagger space-y-4 rounded-2xl border border-border p-6"
       >
         <span className="sr-only">Loading feed</span>
         {[0, 1, 2].map((i) => (
