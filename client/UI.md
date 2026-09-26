@@ -12,7 +12,21 @@ The landing, sign-in, sign-up, loading, not-found, runtime-error, and auth-error
 
 ## Authentication
 
-The forms use the existing NextAuth credentials provider with `register=true` for signup. Google is shown only when its server-side credentials exist. Auth pages remain accessible with an existing session so people can switch accounts. Success returns to `/` because there is no dashboard route yet. Original backend contracts are preserved. Live credentials/OAuth success still requires a running backend, database, and valid provider configuration.
+The forms use the existing NextAuth credentials provider with `register=true` for signup. Google is shown only when its server-side credentials exist. Auth pages remain accessible with an existing session so people can switch accounts. Success returns to `/dashboard`; its server layout requires an authenticated session. Live credentials/OAuth success requires a running backend, database, and valid provider configuration.
+
+## Dashboard and research studio
+
+The dashboard uses a quiet sidebar and consistent controls inspired by [Linear's interface refresh](https://linear.app/now/behind-the-latest-design-refresh), with NarrativeX's existing cream, sage, coral, and forest palette. The requested Astra reference was unavailable at the supplied local path.
+
+- `/dashboard` displays category-filtered news, topic search, public social posts, and selectable geopolitical signals. Counts reflect only the returned data. Locations are explicitly labeled keyword-inferred schematic positions.
+- `/dashboard/bot` starts an investigation; `/dashboard/bot/:conversationId` opens persisted messages. Stories hand off to the composer through a `topic` parameter. The studio supports rename, confirmed deletion, follow-up questions, Markdown briefs, copy, pending states, and failure recovery.
+- `lib/workspace.ts` is the typed client API layer. Every data request uses the authenticated Bun server through `lib/api.ts`; the browser never calls the AI service. The server alone delegates chat to FastAPI.
+- `components/dashboard` owns modular views, shared copy, scroll reveals, and loading/error states. Motion includes staggered entrances, card lift, moving scan lines, pulsing signals, animated controls, and research progress. Reduced-motion disables animation.
+- News and geopolitical endpoints share the bounded `server/src/services/newsService.ts` with NewsAPI and paginated Google News RSS fallback.
+
+`scripts/dashboard-smoke.mjs` checks responsive dashboard/bot layouts, conversation CRUD, follow-up, and authenticated server-only requests against fixture APIs. Start a dedicated client with `NEXTAUTH_SECRET=narrativex-local-ui-smoke-only NEXTAUTH_URL=http://localhost:3100 bun run dev --port 3100`, encode a test session with `next-auth/jwt` using the same test secret and `accessToken: "fixture-only-token"`, then pass `(page, token)` to the script. Do not use production secrets or sessions. These fixtures validate UI contracts, not live AI or provider quality.
+
+Production build verification passed using `bun run build --webpack`; Turbopack was blocked by an internal worker-port permission error in this environment.
 
 ## Validation
 

@@ -5,9 +5,9 @@ class AiService {
         try {
             const response = await microserviceApi.post<T>(route, payload);
             return response.data;
-        } catch (error) {
-            console.error(`Error in AiService POST to ${route}:`, error);
-            throw error;
+        } catch {
+            // Axios errors contain the request payload, including the delegated user token.
+            throw new Error("The research service could not complete the request. Please try again.");
         }
     }
 }
