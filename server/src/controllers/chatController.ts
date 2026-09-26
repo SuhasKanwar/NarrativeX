@@ -54,7 +54,7 @@ export async function postChatHandler(req: Request, res: Response) {
         if (!conversationId) {
             return res.status(400).json({ success: false, message: "Conversation ID is required." });
         }
-        if (!content) {
+        if (typeof content !== "string" || !content.trim() || content.length > 2000) {
             return res.status(400).json({ success: false, message: "Content is required." });
         }
 

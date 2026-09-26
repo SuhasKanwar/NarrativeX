@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import CacheService, { cacheService } from "../services/cacheService";
 import { NEWS_CACHE_TTL } from "../lib/config";
-import { newsapi } from "../lib/news";
+import { searchNews } from "../services/newsService";
 
 const GEO_MAP: Record<string, { lat: number; lng: number }> = {
     "trump": { lat: 38.8951, lng: -77.0364 }, // Washington D.C
@@ -33,7 +33,10 @@ const GEOPOLITICAL_EVENTS_QUERY = '(tariffs OR sanctions OR OPEC OR "supply chai
 
 export async function getGeopoliticalEventsHandler(req: Request, res: Response) {
     try {
-        const limit = parseInt((req.query.limit as string) || "0");
+        const limit = Number(req.query.limit ?? 12);
+        if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
+            return res.status(400).json({ success: false, message: "Limit must be between 1 and 50." });
+        }
         const cacheKey = CacheService.generateCacheKey("geopolitical_events", { limit });
         const cachedData = cacheService.get(cacheKey);
         if (cachedData) {
@@ -47,10 +50,11 @@ export async function getGeopoliticalEventsHandler(req: Request, res: Response) 
             q: GEOPOLITICAL_EVENTS_QUERY,
             language: 'en',
             sortBy: 'publishedAt',
-            pageSize: 50
+            pageSize: 50,
+            page: 1,
         };
 
-        const response = await newsapi.v2.everything(queryParams);
+        const response = await searchNews(queryParams);
         if (!response || !response.articles) {
             throw new Error("NewsAPI returned no articles");
         }
@@ -75,7 +79,8 @@ export async function getGeopoliticalEventsHandler(req: Request, res: Response) 
                     title: article.title,
                     description: article.description,
                     sourceUrl: article.url,
-                    imageUrl: article.urlToImage || null,
+                    imageUrl: article.image || null,
+                    source: article.source,
                     latitude: matchedCoords.lat,
                     longitude: matchedCoords.lng,
                     date: article.publishedAt,
