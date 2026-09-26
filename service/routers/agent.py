@@ -15,7 +15,7 @@ async def execute_query(request: QueryRequest):
             "access_token": request.access_token,
             "classification": "",
             "reasoning": "",
-            "source_context": "",
+            "source_context": {},
             "final_response": "",
             "iterations": 0
         }

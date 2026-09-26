@@ -38,3 +38,7 @@ ROUTER_MODEL = {
         }
     }
 }
+
+RESEARCH_MODEL = {
+    "MODEL_NAME": os.getenv("RESEARCH_MODEL", "openai/gpt-oss-120b"),
+}

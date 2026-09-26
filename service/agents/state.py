@@ -6,6 +6,6 @@ class AgentState(TypedDict):
     access_token: str | None
     classification: str
     reasoning: str
-    source_context: str
+    source_context: dict[str, Any]
     final_response: Any
     iterations: int
