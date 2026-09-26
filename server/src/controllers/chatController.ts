@@ -85,7 +85,8 @@ export async function postChatHandler(req: Request, res: Response) {
 
         const aiResponse = await aiService.post('/api/agent/query', {
             query: content,
-            session_history: formattedHistory
+            session_history: formattedHistory,
+            access_token: req.headers.authorization?.split(" ")[1]
         });
 
         const botText = aiResponse?.data?.response || "I'm sorry, I couldn't generate a response.";

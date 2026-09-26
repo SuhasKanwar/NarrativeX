@@ -12,6 +12,7 @@ async def execute_query(request: QueryRequest):
         initial_state = {
             "query": request.query,
             "session_history": request.session_history,
+            "access_token": request.access_token,
             "classification": "",
             "reasoning": "",
             "source_context": "",
