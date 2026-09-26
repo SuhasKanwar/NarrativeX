@@ -43,6 +43,10 @@
 }
 
 @theme {
+  @keyframes scan {
+    0%, 100% { transform: translateX(-140px); opacity: 0; }
+    50% { transform: translateX(140px); opacity: 1; }
+  }
   --animate-enter: enter 0.7s ease both;
   --animate-signal: signal 5s ease-out infinite;
   --animate-reading: reading linear both;
