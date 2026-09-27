@@ -6,8 +6,11 @@ afterEach(() => { globalThis.fetch = realFetch; });
 
 test("normalizes posts and reports a failed source without losing successful data", async () => {
   globalThis.fetch = (async (input) => {
-    const url = String(input);
-    if (url.includes("public.api.bsky.app")) {
+    const url = new URL(String(input));
+    if (url.hostname === "api.bsky.app") {
+      expect(url.pathname).toBe("/xrpc/app.bsky.feed.searchPosts");
+      expect(url.searchParams.get("q")).toBe("test topic");
+      expect(url.searchParams.get("sort")).toBe("latest");
       return Response.json({ posts: [{
         uri: "at://did:plc:test/app.bsky.feed.post/abc",
         author: { handle: "reporter.test" },
