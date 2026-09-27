@@ -20,6 +20,8 @@ docker-compose*.yml
 
 # Dependencies and Build outputs
 **/node_modules/
+**/.next/
+**/.playwright-mcp/
 **/dist/
 **/build/
 **/bin/
