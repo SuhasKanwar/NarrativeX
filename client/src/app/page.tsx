@@ -113,13 +113,13 @@ export default async function Home() {
                 {primary.label}
                 <ArrowUpRight size={19} />
               </Link>
-              <a
+              <Link
                 className="text-link inline-flex items-center gap-3.5 text-xs hover:underline underline-offset-4"
                 href={content.secondary.href}
               >
                 {content.secondary.label}
                 <ArrowDown size={16} />
-              </a>
+              </Link>
             </div>
           </div>
           <div className="hero-rule mt-12 flex justify-between gap-4 border-t border-border py-5 text-[.5rem] tracking-wider text-muted uppercase md:mt-18 md:text-[.62rem]">

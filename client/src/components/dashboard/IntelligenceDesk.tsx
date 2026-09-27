@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -243,13 +244,15 @@ export default function IntelligenceDesk() {
                     className={`group flex h-full flex-col overflow-hidden rounded-2xl border border-border transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-dark-surface/5 ${i === 0 ? "bg-sage/25" : "bg-surface-raised"}`}
                   >
                     {safeUrl(article.image ?? "") && (
-                      // Provider image hosts are not known at build time.
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={safeUrl(article.image ?? "")}
+                      <Image
+                        src={safeUrl(article.image ?? "")!}
                         alt=""
+                        width={640}
+                        height={360}
+                        unoptimized
                         loading="lazy"
                         referrerPolicy="no-referrer"
+                        sizes="(min-width: 768px) 50vw, 100vw"
                         className="aspect-[16/9] w-full object-cover transition duration-700 motion-safe:group-hover:scale-[1.04]"
                       />
                     )}
@@ -274,15 +277,15 @@ export default function IntelligenceDesk() {
                         </p>
                       )}
                       <div className="mt-auto flex items-center justify-between gap-2 pt-6 text-[11px]">
-                        <a
-                          href={safeUrl(article.url)}
+                        <Link
+                          href={safeUrl(article.url) ?? "#"}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-1 hover:underline"
                         >
                           {copy.read}
                           <ArrowUpRight size={13} />
-                        </a>
+                        </Link>
                         <Link
                           href={`/dashboard/bot?topic=${encodeURIComponent(article.title)}`}
                           className="flex items-center gap-1 text-muted transition hover:text-foreground"
@@ -352,8 +355,8 @@ export default function IntelligenceDesk() {
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {social.data.map((post, i) => (
               <Reveal key={post.platform + post.id + i} delay={(i % 3) * 100}>
-                <a
-                  href={safeUrl(post.url)}
+                <Link
+                  href={safeUrl(post.url) ?? "#"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group block h-full rounded-2xl border border-border bg-surface-raised p-5 transition duration-300 hover:-translate-y-1 hover:border-muted"
@@ -374,7 +377,7 @@ export default function IntelligenceDesk() {
                     {post.author || "Public post"} ·{" "}
                     {dateLabel(post.publishedAt)}
                   </p>
-                </a>
+                </Link>
               </Reveal>
             ))}
           </div>

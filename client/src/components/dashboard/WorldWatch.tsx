@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowUpRight, Globe2 } from "lucide-react";
 import { type GeoEvent, dateLabel, safeUrl } from "@/lib/workspace";
 
@@ -100,13 +101,15 @@ export default function WorldWatch({ events }: { events: GeoEvent[] }) {
         {active ? (
           <>
             {safeUrl(active.imageUrl ?? "") && (
-              // Provider image hosts are not known at build time.
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={safeUrl(active.imageUrl ?? "")}
+              <Image
+                src={safeUrl(active.imageUrl ?? "")!}
                 alt=""
+                width={640}
+                height={320}
+                unoptimized
                 loading="lazy"
                 referrerPolicy="no-referrer"
+                sizes="(min-width: 768px) 40vw, 100vw"
                 className="mb-5 aspect-[16/8] w-full rounded-xl object-cover opacity-80 transition duration-700 motion-safe:hover:opacity-100"
               />
             )}
@@ -118,15 +121,15 @@ export default function WorldWatch({ events }: { events: GeoEvent[] }) {
             </div>
             <h3 className="mt-4 text-lg leading-snug">{active.title}</h3>
             <div className="mt-5 flex flex-wrap gap-4 text-xs">
-              <a
-                href={safeUrl(active.sourceUrl)}
+              <Link
+                href={safeUrl(active.sourceUrl) ?? "#"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-sage hover:underline"
               >
                 {copy.open}
                 <ArrowUpRight size={13} />
-              </a>
+              </Link>
               <Link
                 href={`/dashboard/bot?topic=${encodeURIComponent(active.title)}`}
                 className="text-dark-muted hover:text-inverse"

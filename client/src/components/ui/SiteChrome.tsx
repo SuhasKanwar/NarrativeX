@@ -25,12 +25,12 @@ export function SiteHeader({
   const primary = authenticated ? chrome.dashboard : chrome.signup;
   return (
     <>
-      <a
+      <Link
         className="skip-link fixed top-2.5 left-2.5 z-50 translate-y-[-180%] bg-foreground p-3 text-inverse focus:translate-y-0"
         href="#main-content"
       >
         {chrome.skip}
-      </a>
+      </Link>
       <header className="site-header flex items-center justify-between gap-6 border-b border-border py-6 md:py-7 section-wrap mx-auto w-[calc(100%-40px)] max-w-332 md:w-[calc(100%-64px)] xl:w-[calc(100%-112px)]">
         <Logo />
         <nav
