@@ -1,39 +1,45 @@
 import sys
-import json
+from typing import Literal
 
-from groq import Groq
+from langchain_core.messages import HumanMessage
+from langchain_nvidia_ai_endpoints import ChatNVIDIA
+from pydantic import BaseModel
 
-from utils.logger import logger
-from utils.exception import NarrativeXException
-
-from config.prompts import ROUTER_MODEL_SYSTEM_PROMPT
+from config import NVIDIA_API_KEY
 from config.models import ROUTER_MODEL
-from config import GROQ_API_KEY
+from config.prompts import ROUTER_MODEL_SYSTEM_PROMPT
+from utils.exception import NarrativeXException
+from utils.logger import logger
+
+
+class RouteDecision(BaseModel):
+    classification: Literal["narrative_analysis", "general"]
+    reasoning: str
+
 
 class ModelRouter:
-    def __init__(self, model_name):
-        self.model_name = model_name
+    def __init__(self, client=None):
+        self.model_name = ROUTER_MODEL["MODEL_NAME"]
         self.system_prompt = ROUTER_MODEL_SYSTEM_PROMPT
-        self.router_model = Groq(api_key=GROQ_API_KEY)
+        model = client or ChatNVIDIA(
+            model=self.model_name,
+            api_key=NVIDIA_API_KEY,
+            temperature=0,
+            max_completion_tokens=256,
+        )
+        self.router_model = model.with_structured_output(RouteDecision)
 
-    def route_request(self, prompt: str) -> tuple:
+    def route_request(self, prompt: str) -> tuple[str, str]:
         try:
-            response = self.router_model.chat.completions.create(
-                model=self.model_name,
-                messages=[
-                    {"role": "system", "content": self.system_prompt.content},
-                    {"role": "user", "content": prompt}
-                ],
-                response_format=ROUTER_MODEL["RESPONSE_FORMAT"]
+            response = self.router_model.invoke([
+                self.system_prompt,
+                HumanMessage(content=prompt),
+            ])
+            if isinstance(response, dict):
+                return response["classification"], response.get("reasoning", "")
+            return response.classification, response.reasoning
+        except Exception as error:
+            logger.error(f"Error routing request: {error}")
+            raise NarrativeXException(
+                f"Failed to route request in NVIDIA model ({self.model_name})", sys
             )
-
-            response_content = json.loads(response.choices[0].message.content)
-
-            classification = response_content.get("classification")
-            reasoning = response_content.get("reasoning", "")
-
-            return classification, reasoning
-            
-        except Exception as e:
-            logger.error(f"Error routing request: {str(e)}")
-            raise NarrativeXException(f"Failed to route request in Router model ({self.model_name})", sys)

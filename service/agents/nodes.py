@@ -1,13 +1,12 @@
 from agents.state import AgentState
 from agents.research import ResearchAgent
-from models.llama import Llama
+from models.gpt_oss import GPTOSS
 from services.router import ModelRouter
 from services.evaluation import EvaluationService
-from config.models import ROUTER_MODEL, LLAMA
 from utils.logger import logger
 
-router_client = ModelRouter(model_name=ROUTER_MODEL["MODEL_NAME"])
-llama_client = Llama(model_name=LLAMA["MODEL_NAME"])
+router_client = ModelRouter()
+general_client = GPTOSS()
 research_agent = ResearchAgent()
 evaluation_service = EvaluationService()
 
@@ -19,19 +18,19 @@ def router_node(state: AgentState) -> dict:
     
     return {"classification": classification, "reasoning": reasoning}
 
-def llama_node(state: AgentState) -> dict:
+def general_node(state: AgentState) -> dict:
     query = state.get("query", "")
     reasoning = state.get("reasoning", "")
     session_history = state.get("session_history", [])
     
     try:
-        response = llama_client.generate_response(query, session_history)
+        response = general_client.generate_response(query, session_history)
         analysis = {
             "reasoning": reasoning,
             "response": response.get("text", "")
         }
     except Exception as e:
-        logger.error(f"Llama node failed: {e}")
+        logger.error(f"General response node failed: {e}")
         analysis = {
             "reasoning": reasoning,
             "response": f"Failed to analyze due to model error: {e}"

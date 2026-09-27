@@ -15,10 +15,10 @@ parameters, and evaluates how claims relate, change, and spread.
 authenticated chat request
   -> server /api/conversation/chat/:id
   -> service /api/agent/query
-  -> GPT-OSS selects news/social tool parameters
+  -> NVIDIA Nemotron routes requests and selects news/social tool parameters
   -> service tools call authenticated server APIs
   -> server fetches and normalizes provider data
-  -> Nemotron compares claims, evidence, relationships, and propagation
+  -> NVIDIA Nemotron compares claims, evidence, relationships, and propagation
   -> response is stored in the conversation
 ```
 
@@ -35,12 +35,13 @@ evaluated.
 
 ## Model roles
 
-- `openai/gpt-oss-120b` routes requests and chooses tool calls and parameters.
-- `nvidia/nemotron-3-ultra-550b-a55b` performs long-context claim and relationship analysis.
-- `llama-3.3-70b-versatile` handles ordinary conversation that needs no retrieval.
+- `nvidia/nemotron-3-ultra-550b-a55b` routes requests, chooses news/social API parameters,
+  and performs claim and relationship analysis.
+- Groq `openai/gpt-oss-120b` handles ordinary conversation that needs no retrieval.
 
-All model IDs are environment-configurable. Source payloads are treated as untrusted data,
-and the evaluator preserves uncertainty instead of treating search results as proof.
+Model IDs are fixed in `service/config/models.py`; environment files contain provider
+credentials and runtime settings only. Source payloads are treated as untrusted data, and
+the evaluator preserves uncertainty instead of treating search results as proof.
 
 ## Setup
 

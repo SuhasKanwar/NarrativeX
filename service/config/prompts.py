@@ -1,6 +1,6 @@
 from langchain_core.messages import SystemMessage
 
-LLAMA_SYSTEM_PROMPT = SystemMessage(content="""
+GPT_OSS_SYSTEM_PROMPT = SystemMessage(content="""
 You are NarrativeX's general assistant.
 
 Answer clearly and briefly. When the user asks about NarrativeX, explain it as a
