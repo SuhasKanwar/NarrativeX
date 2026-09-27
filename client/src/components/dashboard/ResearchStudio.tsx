@@ -263,7 +263,7 @@ export default function ResearchStudio({
         )}
         {editing && (
           <form
-            className="mt-4 flex gap-2"
+            className="mt-4 flex gap-2 motion-safe:animate-enter"
             onSubmit={(e) => {
               e.preventDefault();
               void updateConversation("rename");

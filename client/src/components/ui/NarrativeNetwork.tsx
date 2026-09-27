@@ -39,20 +39,21 @@ export default function NarrativeNetwork() {
       aria-hidden="true"
     >
       <circle
-        className="network-orbit stroke-dark-border [stroke-dasharray:2_8]"
+        className="network-orbit origin-[250px_230px] stroke-dark-border [stroke-dasharray:2_8] motion-safe:animate-[spin_80s_linear_infinite]"
         cx="250"
         cy="230"
         r="178"
       />
       <circle
-        className="network-orbit stroke-dark-border [stroke-dasharray:2_8]"
+        className="network-orbit origin-[250px_230px] stroke-dark-border [stroke-dasharray:2_8] motion-safe:animate-[spin_50s_linear_infinite_reverse]"
         cx="250"
         cy="230"
         r="110"
       />
-      {edges.map(([a, b]) => (
+      {edges.map(([a, b], index) => (
         <line
-          className="network-edge stroke-dark-muted/40 stroke-[1.5]"
+          className="network-edge stroke-dark-muted/40 stroke-[1.5] [stroke-dasharray:8_10] motion-safe:animate-[flow_8s_linear_infinite]"
+          style={{ animationDelay: `${index * -0.5}s` }}
           key={`${a}-${b}`}
           x1={nodes[a].x}
           y1={nodes[a].y}

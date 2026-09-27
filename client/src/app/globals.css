@@ -43,6 +43,9 @@
 }
 
 @theme {
+  @keyframes flow {
+    to { stroke-dashoffset: -72; }
+  }
   @keyframes scan {
     0%, 100% { transform: translateX(-140px); opacity: 0; }
     50% { transform: translateX(140px); opacity: 1; }

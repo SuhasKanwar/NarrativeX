@@ -16,6 +16,8 @@ The forms use the existing NextAuth credentials provider with `register=true` fo
 
 ## Dashboard and research studio
 
+Shared motion uses Tailwind animation utilities and the browser Web Animations API—no animation dependency. `PageMotion` animates each pathname change without remounting forms or fetching data again. Forms and history use staggered entrances; the shared network has rotating orbits and flowing edges. Button presses, input focus, errors, scroll reveals, and research panels share motion treatment. Changing reduced-motion preferences cancels the active page transition and disables CSS animation immediately.
+
 The dashboard uses a quiet sidebar and consistent controls inspired by [Linear's interface refresh](https://linear.app/now/behind-the-latest-design-refresh), with NarrativeX's existing cream, sage, coral, and forest palette. The requested Astra reference was unavailable at the supplied local path.
 
 - `/dashboard` displays category-filtered news, topic search, public social posts, and selectable geopolitical signals. Counts reflect only the returned data. Locations are explicitly labeled keyword-inferred schematic positions.
