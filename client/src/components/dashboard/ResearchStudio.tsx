@@ -417,6 +417,17 @@ export default function ResearchStudio({
             maxLength={2000}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (
+                e.key === "Enter" &&
+                !e.ctrlKey &&
+                !e.shiftKey &&
+                !e.metaKey
+              ) {
+                e.preventDefault();
+                void send();
+              }
+            }}
             placeholder={bot.placeholder}
             disabled={busy || loading || Boolean(loadError)}
             className="w-full resize-none bg-transparent text-sm leading-6 outline-none placeholder:text-muted"
