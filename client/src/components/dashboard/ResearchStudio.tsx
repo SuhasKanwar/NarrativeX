@@ -16,6 +16,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { md } from "@/lib/markdown";
+import { pushToast } from "@/lib/toasts";
 import {
   workspace,
   type Chat,
@@ -46,6 +47,7 @@ const copy = {
   save: "Save title",
   copy: "Copy brief",
   copied: "Copied",
+  copySuccess: "Research brief copied to clipboard.",
   unavailable: "Could not update this investigation.",
   clipboard: "Could not copy. Select the text to copy it manually.",
   working: "INVESTIGATION IN PROGRESS",
@@ -67,8 +69,10 @@ function ResearchBrief({ message }: { message: Chat }) {
             try {
               await navigator.clipboard.writeText(message.content || "");
               setCopied(true);
+              pushToast("success", copy.copySuccess);
             } catch {
               setError(copy.clipboard);
+              pushToast("error", copy.clipboard);
             }
           }}
           aria-label={copied ? copy.copied : copy.copy}
