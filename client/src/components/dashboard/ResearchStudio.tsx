@@ -217,9 +217,9 @@ export default function ResearchStudio({
   }
 
   return (
-    <div className="grid items-start gap-8 2xl:grid-cols-[minmax(0,1fr)_240px]">
-      <div className="min-w-0">
-        <Reveal>
+    <div className="grid h-full min-h-0 grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_260px] xl:gap-6">
+      <div className="flex min-h-0 min-w-0 flex-col">
+        <Reveal className="shrink-0">
           <header className="flex items-center justify-between gap-4 border-b border-border pb-5">
             <p className="text-[9px] tracking-[.2em] text-muted">
               {bot.eyebrow}
@@ -302,6 +302,7 @@ export default function ResearchStudio({
             </div>
           </div>
         )}
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
         {!conversationId && !busy && messages.length === 0 && (
           <div className="py-10 md:py-16">
             <Reveal delay={100}>
@@ -397,12 +398,13 @@ export default function ResearchStudio({
           </div>
         )}
         <div ref={end} />
+        </div>
         <form
           onSubmit={(e) => {
             e.preventDefault();
             void send();
           }}
-          className="sticky bottom-3 z-10 rounded-2xl border border-border bg-surface-raised/95 p-4 shadow-xl shadow-dark-surface/5 backdrop-blur-xl transition duration-300 focus-within:border-muted focus-within:shadow-2xl"
+          className="z-10 shrink-0 rounded-2xl border border-border bg-surface-raised/95 p-3 shadow-xl shadow-dark-surface/5 backdrop-blur-xl transition duration-300 focus-within:border-muted focus-within:shadow-2xl sm:p-4"
         >
           <label
             htmlFor="research-question"
@@ -462,7 +464,7 @@ export default function ResearchStudio({
           {bot.notice}
         </p>
       </div>
-      <aside className="border-t border-border pt-6 2xl:sticky 2xl:top-8 2xl:border-t-0 2xl:border-l 2xl:pt-0 2xl:pl-6">
+      <aside className="hidden min-h-0 overflow-y-auto border-l border-border pl-6 xl:block">
         <p className="mb-5 text-[9px] tracking-[.18em] text-muted">
           {copy.history}
         </p>

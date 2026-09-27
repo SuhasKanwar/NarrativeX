@@ -27,8 +27,11 @@ export default function WorkspaceShell({
   name: string;
 }) {
   const path = usePathname();
+  const researchStudio = path.startsWith("/dashboard/bot");
   return (
-    <div className="min-h-svh lg:grid lg:grid-cols-[232px_minmax(0,1fr)]">
+    <div
+      className={`${researchStudio ? "grid h-dvh grid-rows-[auto_minmax(0,1fr)] overflow-hidden lg:grid-rows-1" : "min-h-svh"} lg:grid lg:grid-cols-[232px_minmax(0,1fr)]`}
+    >
       <a
         href="#workspace"
         className="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:bg-accent focus:p-4"
@@ -97,8 +100,10 @@ export default function WorkspaceShell({
           </button>
         </div>
       </aside>
-      <div className="min-w-0">
-        <header className="flex items-center justify-between border-b border-border px-5 py-5 md:px-9">
+      <div
+        className={`${researchStudio ? "flex min-h-0 min-w-0 flex-col overflow-hidden" : "min-w-0"}`}
+      >
+        <header className="flex shrink-0 items-center justify-between border-b border-border px-5 py-5 md:px-9">
           <span className="text-[9px] tracking-[.2em] text-muted">
             {copy.edition}
           </span>
@@ -107,7 +112,10 @@ export default function WorkspaceShell({
             {path.includes("/bot") ? "Research studio" : "Intelligence desk"}
           </span>
         </header>
-        <main id="workspace" className="mx-auto max-w-400 p-5 md:p-9">
+        <main
+          id="workspace"
+          className={`${researchStudio ? "mx-auto flex min-h-0 w-full max-w-400 flex-1 flex-col overflow-hidden p-3 sm:p-5 md:p-6" : "mx-auto max-w-400 p-5 md:p-9"}`}
+        >
           {children}
         </main>
       </div>
