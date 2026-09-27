@@ -65,6 +65,20 @@ cd server && bun install && bun run dev
 cd service && python -m pip install -r requirements.txt && uvicorn app:app --reload --port 8000
 ```
 
+## Docker Compose
+
+After copying the example environment files above, set `DATABASE_URL` in
+`server/.env` to a PostgreSQL instance reachable from Docker, then start the full stack:
+
+```bash
+docker compose up --build
+```
+
+The client and API are available at `http://localhost:3000` and `http://localhost:9000`.
+The AI service remains internal to the Compose network; the API calls it at
+`http://service:8000`. To use a remotely hosted API from the browser, pass
+`NEXT_PUBLIC_HTTP_SERVER_BASE_URL` as a build argument/environment variable.
+
 ## Relevant APIs
 
 - `GET /api/news/search?q=...` on the server

@@ -1,0 +1,46 @@
+services:
+  service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.service
+    env_file:
+      - ./service/.env
+    environment:
+      HOST: 0.0.0.0
+      PORT: "8000"
+      SERVER_BASE_URL: http://server:9000
+    expose:
+      - "8000"
+    restart: unless-stopped
+
+  server:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.server
+    env_file:
+      - ./server/.env
+    environment:
+      PORT: "9000"
+      MICROSERVICE_BASE_URL: http://service:8000
+    ports:
+      - "${SERVER_HOST_PORT:-9000}:9000"
+    depends_on:
+      - service
+    restart: unless-stopped
+
+  client:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.client
+      args:
+        NEXT_PUBLIC_HTTP_SERVER_BASE_URL: ${NEXT_PUBLIC_HTTP_SERVER_BASE_URL:-http://localhost:9000}
+    env_file:
+      - ./client/.env
+    environment:
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+    ports:
+      - "${CLIENT_HOST_PORT:-3000}:3000"
+    depends_on:
+      - server
+    restart: unless-stopped
