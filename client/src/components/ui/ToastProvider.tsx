@@ -16,7 +16,7 @@ export default function ToastProvider({
   return (
     <>
       {children}
-      <div className="pointer-events-none fixed right-4 bottom-4 z-[100] flex w-[min(24rem,calc(100vw-2rem))] flex-col gap-2 sm:right-6 sm:bottom-6">
+      <div className="pointer-events-none fixed top-4 right-4 z-[100] flex w-[min(24rem,calc(100vw-2rem))] flex-col gap-2 sm:top-6 sm:right-6">
         {toasts.map((toast) => {
           const Icon = toast.kind === "error" ? AlertCircle : CheckCircle2;
           return (
