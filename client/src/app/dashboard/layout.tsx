@@ -10,7 +10,10 @@ export default async function DashboardLayout({
   const session = await getAuthSession();
   if (!session?.accessToken) redirect("/auth/signin?callbackUrl=/dashboard");
   return (
-    <WorkspaceShell name={session.user?.name || "Researcher"}>
+    <WorkspaceShell
+      name={session.user?.name || "Researcher"}
+      imageUrl={session.user?.image}
+    >
       {children}
     </WorkspaceShell>
   );

@@ -302,7 +302,7 @@ export default function ResearchStudio({
             </div>
           </div>
         )}
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {!conversationId && !busy && messages.length === 0 && (
           <div className="py-10 md:py-16">
             <Reveal delay={100}>
@@ -415,7 +415,7 @@ export default function ResearchStudio({
           <textarea
             ref={input}
             id="research-question"
-            rows={3}
+            rows={2}
             maxLength={2000}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}

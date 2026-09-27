@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import PageMotion from "@/components/ui/PageMotion";
+import ToastProvider from "@/components/ui/ToastProvider";
 export const metadata: Metadata = {
   title: "NarrativeX",
   description: "NarrativeX is a web-based system that collects social-media and news content, extracts and compares claims using NLP and semantic analysis, and tracks their evolution and spread. It categorizes claims based on available evidence and visualizes narrative and propagation patterns through an interactive dashboard.",
@@ -31,7 +32,9 @@ export default async function RootLayout({
       className={`h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <PageMotion>{children}</PageMotion>
+        <ToastProvider>
+          <PageMotion>{children}</PageMotion>
+        </ToastProvider>
       </body>
     </html>
   );

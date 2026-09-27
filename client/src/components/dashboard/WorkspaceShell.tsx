@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { ArrowUpRight, LayoutDashboard, LogOut, Sparkles } from "lucide-react";
@@ -22,9 +23,11 @@ const copy = {
 export default function WorkspaceShell({
   children,
   name,
+  imageUrl,
 }: {
   children: React.ReactNode;
   name: string;
+  imageUrl?: string | null;
 }) {
   const path = usePathname();
   const researchStudio = path.startsWith("/dashboard/bot");
@@ -47,7 +50,7 @@ export default function WorkspaceShell({
         </div>
         <nav
           aria-label="Workspace"
-          className="flex gap-2 overflow-x-auto px-4 pb-4 lg:flex-col lg:px-3"
+          className="flex gap-2 overflow-x-auto px-4 pb-4 lg:flex-col lg:px-4"
         >
           {navigation.map(({ href, label, icon: Icon }) => {
             const active =
@@ -87,8 +90,12 @@ export default function WorkspaceShell({
           </div>
         </div>
         <div className="flex items-center gap-3 border-t border-border px-6 py-4">
-          <span className="grid size-8 place-items-center rounded-full bg-sage text-xs font-bold">
-            {name.slice(0, 1).toUpperCase()}
+          <span className="grid size-8 shrink-0 place-items-center overflow-hidden rounded-full bg-sage text-xs font-bold">
+            {imageUrl ? (
+              <Image src={imageUrl} alt="" width={32} height={32} className="size-full object-cover" />
+            ) : (
+              name.slice(0, 1).toUpperCase()
+            )}
           </span>
           <span className="min-w-0 flex-1 truncate text-xs">{name}</span>
           <button
