@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import Logo from "./Logo";
+import LogoutButton from "./LogoutButton";
 
 const chrome = {
   skip: "Skip to content",
@@ -11,11 +12,17 @@ const chrome = {
   ],
   signin: { label: "Sign in", href: "/auth/signin" },
   signup: { label: "Get started", href: "/auth/signup" },
+  dashboard: { label: "Dashboard", href: "/dashboard" },
   footer: "Independent thinking. Connected perspectives.",
   copyright: "NarrativeX. Built for the curious.",
 };
 
-export function SiteHeader() {
+export function SiteHeader({
+  authenticated = false,
+}: {
+  authenticated?: boolean;
+}) {
+  const primary = authenticated ? chrome.dashboard : chrome.signup;
   return (
     <>
       <a
@@ -37,30 +44,40 @@ export function SiteHeader() {
           ))}
         </nav>
         <div className="header-actions hidden items-center gap-8 text-xs md:flex">
-          <Link
-            className="signin-link hover:underline underline-offset-4"
-            href={chrome.signin.href}
-          >
-            {chrome.signin.label}
-          </Link>
+          {authenticated ? (
+            <LogoutButton className="signin-link hover:underline underline-offset-4" />
+          ) : (
+            <Link
+              className="signin-link hover:underline underline-offset-4"
+              href={chrome.signin.href}
+            >
+              {chrome.signin.label}
+            </Link>
+          )}
           <Link
             className="button inline-flex min-h-[54px] items-center justify-center gap-7 rounded-sm border border-transparent px-6 py-3.5 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 [&_svg]:transition-transform hover:[&_svg]:translate-x-0.5 hover:[&_svg]:-translate-y-0.5 button-small min-h-11 gap-5 px-4 py-2.5 text-xs button-dark bg-foreground text-inverse hover:bg-dark-border"
-            href={chrome.signup.href}
+            href={primary.href}
           >
-            {chrome.signup.label}
+            {primary.label}
             <ArrowUpRight size={16} />
           </Link>
         </div>
         <details className="mobile-menu relative md:hidden [&_summary]:p-2.5 [&_summary]:text-sm [&_nav]:absolute [&_nav]:right-0 [&_nav]:top-12 [&_nav]:z-20 [&_nav]:w-60 [&_nav]:border [&_nav]:border-border [&_nav]:bg-surface-raised [&_nav]:p-4 [&_nav]:shadow-xl [&_a]:flex [&_a]:justify-between [&_a]:px-2 [&_a]:py-3.5 [&_a]:text-sm">
           <summary>{chrome.menu}</summary>
           <nav aria-label="Mobile navigation">
-            {[...chrome.navigation, chrome.signin, chrome.signup].map(
-              (item) => (
-                <Link key={item.href} href={item.href}>
-                  {item.label}
-                  <ArrowUpRight size={16} />
-                </Link>
-              ),
+            {[
+              ...chrome.navigation,
+              ...(authenticated
+                ? [chrome.dashboard]
+                : [chrome.signin, chrome.signup]),
+            ].map((item) => (
+              <Link key={item.href} href={item.href}>
+                {item.label}
+                <ArrowUpRight size={16} />
+              </Link>
+            ))}
+            {authenticated && (
+              <LogoutButton className="flex w-full px-2 py-3.5 text-left text-sm hover:bg-surface" />
             )}
           </nav>
         </details>

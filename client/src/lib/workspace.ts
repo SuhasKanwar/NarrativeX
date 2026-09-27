@@ -7,6 +7,7 @@ export type Article = {
   source: string;
   publishedAt: string;
   description?: string | null;
+  image?: string | null;
 };
 export type GeoEvent = {
   id: string;
@@ -17,6 +18,7 @@ export type GeoEvent = {
   longitude: number;
   matchedKeyword: string;
   source?: string;
+  imageUrl?: string | null;
 };
 export type Post = {
   id: string;

@@ -12,6 +12,7 @@ import NarrativeNetwork from "@/components/ui/NarrativeNetwork";
 import ScrollEffects from "@/components/ui/ScrollEffects";
 import SourceExplorer from "@/components/home/SourceExplorer";
 import ResearchSections from "@/components/home/ResearchSections";
+import { getAuthSession } from "@/lib/session";
 
 const content = {
   eyebrow: "A clearer perspective on a connected world",
@@ -71,10 +72,15 @@ const content = {
   },
 };
 
-export default function Home() {
+export default async function Home() {
+  const session = await getAuthSession();
+  const authenticated = Boolean(session?.accessToken);
+  const primary = authenticated
+    ? { label: "Open dashboard", href: "/dashboard" }
+    : content.primary;
   return (
     <>
-      <SiteHeader />
+      <SiteHeader authenticated={authenticated} />
       <ScrollEffects />
       <main id="main-content">
         <section className="hero pt-12 md:pt-18 [&>h1]:relative [&>h1]:my-9 [&>h1]:text-[clamp(3.25rem,10.7vw,5rem)] md:[&>h1]:text-[clamp(4rem,8.7vw,8.6rem)] [&>h1]:leading-[1.02] [&>h1]:tracking-[-.07em] motion-safe:[&>h1]:animate-enter [&>.eyebrow]:flex [&>.eyebrow]:items-center [&>.eyebrow]:gap-2.5 [&>.eyebrow]:text-[.54rem] md:[&>.eyebrow]:text-[.66rem] section-wrap mx-auto w-[calc(100%-40px)] max-w-[1328px] md:w-[calc(100%-64px)] xl:w-[calc(100%-112px)]">
@@ -102,9 +108,9 @@ export default function Home() {
             <div className="hero-actions flex items-center gap-5 md:flex-col md:items-start xl:flex-row xl:items-center xl:gap-7 [&>.text-link]:max-w-36 xl:[&>.text-link]:max-w-none [&>.button]:gap-4 [&>.button]:px-4">
               <Link
                 className="button inline-flex min-h-[54px] items-center justify-center gap-7 rounded-sm border border-transparent px-6 py-3.5 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 [&_svg]:transition-transform hover:[&_svg]:translate-x-0.5 hover:[&_svg]:-translate-y-0.5 button-primary bg-accent text-accent-ink hover:bg-accent-hover"
-                href={content.primary.href}
+                href={primary.href}
               >
-                {content.primary.label}
+                {primary.label}
                 <ArrowUpRight size={19} />
               </Link>
               <a

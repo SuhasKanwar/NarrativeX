@@ -99,6 +99,17 @@ export default function WorldWatch({ events }: { events: GeoEvent[] }) {
       <div key={active?.id} className="p-6 motion-safe:animate-enter">
         {active ? (
           <>
+            {safeUrl(active.imageUrl ?? "") && (
+              // Provider image hosts are not known at build time.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={safeUrl(active.imageUrl ?? "")}
+                alt=""
+                loading="lazy"
+                referrerPolicy="no-referrer"
+                className="mb-5 aspect-[16/8] w-full rounded-xl object-cover opacity-80 transition duration-700 motion-safe:hover:opacity-100"
+              />
+            )}
             <div className="flex items-center justify-between text-[10px] text-dark-muted">
               <span className="rounded-full border border-dark-border px-3 py-1 capitalize">
                 {active.matchedKeyword}

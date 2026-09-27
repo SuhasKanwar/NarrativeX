@@ -240,44 +240,57 @@ export default function IntelligenceDesk() {
               {news.data.map((article, i) => (
                 <Reveal key={article.url + i} delay={(i % 2) * 100}>
                   <article
-                    className={`group flex h-full flex-col rounded-2xl border border-border p-6 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-dark-surface/5 ${i === 0 ? "bg-sage/25" : "bg-surface-raised"}`}
+                    className={`group flex h-full flex-col overflow-hidden rounded-2xl border border-border transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-dark-surface/5 ${i === 0 ? "bg-sage/25" : "bg-surface-raised"}`}
                   >
-                    <div className="flex items-center justify-between gap-3 text-[10px] text-muted">
-                      <span className="truncate uppercase tracking-wide">
-                        {article.source}
-                      </span>
-                      <span className="shrink-0">
-                        {dateLabel(article.publishedAt)}
-                      </span>
-                    </div>
-                    <span className="mt-6 font-editorial text-4xl text-muted/25">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <h3 className="mt-3 font-editorial text-2xl leading-tight tracking-tight">
-                      {article.title}
-                    </h3>
-                    {article.description && (
-                      <p className="mt-4 line-clamp-3 text-xs leading-6 text-muted">
-                        {article.description}
-                      </p>
+                    {safeUrl(article.image ?? "") && (
+                      // Provider image hosts are not known at build time.
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={safeUrl(article.image ?? "")}
+                        alt=""
+                        loading="lazy"
+                        referrerPolicy="no-referrer"
+                        className="aspect-[16/9] w-full object-cover transition duration-700 motion-safe:group-hover:scale-[1.04]"
+                      />
                     )}
-                    <div className="mt-auto flex items-center justify-between gap-2 pt-6 text-[11px]">
-                      <a
-                        href={safeUrl(article.url)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 hover:underline"
-                      >
-                        {copy.read}
-                        <ArrowUpRight size={13} />
-                      </a>
-                      <Link
-                        href={`/dashboard/bot?topic=${encodeURIComponent(article.title)}`}
-                        className="flex items-center gap-1 text-muted transition hover:text-foreground"
-                      >
-                        <Sparkles size={12} />
-                        {copy.investigate}
-                      </Link>
+                    <div className="flex flex-1 flex-col p-6">
+                      <div className="flex items-center justify-between gap-3 text-[10px] text-muted">
+                        <span className="truncate uppercase tracking-wide">
+                          {article.source}
+                        </span>
+                        <span className="shrink-0">
+                          {dateLabel(article.publishedAt)}
+                        </span>
+                      </div>
+                      <span className="mt-6 font-editorial text-4xl text-muted/25">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <h3 className="mt-3 font-editorial text-2xl leading-tight tracking-tight">
+                        {article.title}
+                      </h3>
+                      {article.description && (
+                        <p className="mt-4 line-clamp-3 text-xs leading-6 text-muted">
+                          {article.description}
+                        </p>
+                      )}
+                      <div className="mt-auto flex items-center justify-between gap-2 pt-6 text-[11px]">
+                        <a
+                          href={safeUrl(article.url)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 hover:underline"
+                        >
+                          {copy.read}
+                          <ArrowUpRight size={13} />
+                        </a>
+                        <Link
+                          href={`/dashboard/bot?topic=${encodeURIComponent(article.title)}`}
+                          className="flex items-center gap-1 text-muted transition hover:text-foreground"
+                        >
+                          <Sparkles size={12} />
+                          {copy.investigate}
+                        </Link>
+                      </div>
                     </div>
                   </article>
                 </Reveal>
