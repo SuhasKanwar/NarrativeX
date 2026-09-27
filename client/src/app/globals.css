@@ -149,35 +149,37 @@
   }
 }
 
-a,
-button {
-  cursor: pointer;
-}
+@layer base {
+  a,
+  button {
+    cursor: pointer;
+  }
 
-::-webkit-scrollbar {
-  width: 8px;
-  background: var(--background);
-}
+  ::-webkit-scrollbar {
+    width: 8px;
+    background: var(--background);
+  }
 
-::-webkit-scrollbar-thumb {
-  background: var(--accent);
-  border-radius: 8px;
-}
+  ::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 8px;
+  }
 
-::-webkit-scrollbar-track {
-  background: var(--background);
-}
+  ::-webkit-scrollbar-track {
+    background: var(--background);
+  }
 
-::-webkit-scrollbar-corner {
-  background: var(--accent);
-}
+  ::-webkit-scrollbar-corner {
+    background: var(--accent);
+  }
 
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--accent) var(--background);
-}
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) var(--background);
+  }
 
-html {
-  scroll-behavior: smooth;
-  scroll-padding-top: 10px;
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 10px;
+  }
 }
