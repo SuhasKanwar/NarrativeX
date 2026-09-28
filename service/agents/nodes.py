@@ -49,7 +49,7 @@ def general_node(state: AgentState) -> dict:
         logger.error(f"General response node failed: {e}")
         analysis = {
             "reasoning": reasoning,
-            "response": f"Failed to analyze due to model error: {e}"
+            "response": "The assistant is temporarily unavailable. Please retry your question."
         }
         
     return {"final_response": analysis}
@@ -70,9 +70,6 @@ def analysis_node(state: AgentState) -> dict:
         analysis = _evaluation_service().evaluate(query, source_context, session_history)
     except Exception as e:
         logger.error(f"Analysis node failed: {e}")
-        analysis = {
-            "reasoning": "",
-            "response": f"Failed to analyze due to model error: {e}"
-        }
+        analysis = _evaluation_service().fallback(source_context)
         
     return {"final_response": analysis}

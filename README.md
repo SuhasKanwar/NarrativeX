@@ -15,10 +15,11 @@ parameters, and evaluates how claims relate, change, and spread.
 authenticated chat request
   -> server /api/conversation/chat/:id
   -> service /api/agent/query
-  -> NVIDIA Nemotron Ultra routes requests and selects news/social tool parameters
+  -> deterministic routing selects chat or research without a model round trip
+  -> NVIDIA Nemotron Ultra selects news/social tool parameters
   -> independent tool calls run concurrently against authenticated server APIs
   -> server fetches and normalizes provider data
-  -> NVIDIA Nemotron Ultra extracts structured claims, relationships, and propagation
+  -> NVIDIA Nemotron Super extracts structured claims, relationships, and propagation
   -> NVIDIA Embed computes semantic scores with a local TF-IDF fallback
   -> a separate LLM judge scores groundedness, relevance, completeness, and source quality
   -> deterministic evidence metrics are combined with the judge scores
@@ -38,8 +39,9 @@ evaluated.
 
 ## Model roles
 
-- `nvidia/nemotron-3-ultra-550b-a55b` routes requests, chooses news/social API parameters,
-  performs claim and relationship analysis, and judges the grounded output.
+- `nvidia/nemotron-3-ultra-550b-a55b` performs the single news/social tool-planning call.
+- `nvidia/nemotron-3-super-120b-a12b` performs bounded claim analysis and judges the grounded
+  output. Deterministic routing avoids spending a model call before research begins.
 - `nvidia/nemotron-3-embed-1b` measures semantic query/source relevance and source redundancy.
 - Groq `openai/gpt-oss-120b` handles ordinary conversation that needs no retrieval.
 

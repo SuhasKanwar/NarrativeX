@@ -2,16 +2,13 @@ import json
 from typing import Any
 from urllib.parse import urlparse
 
-from tenacity import retry, stop_after_attempt, wait_fixed
-
-from config.agent import AGENT_CONFIG
 from config.models import NEMOTRON
 from models.nemotron import Nemotron
 from schemas.evaluation import EvaluationResult, EvidenceDocument, JudgeAssessment, NarrativeAnalysis
 from services.metrics import MetricsEvaluator, rank_documents
 
 
-MAX_EVIDENCE_ITEMS = 30
+MAX_EVIDENCE_ITEMS = 8
 
 
 class EvaluationService:
@@ -20,7 +17,7 @@ class EvaluationService:
         self.metrics = metrics or MetricsEvaluator()
 
     def evaluate(self, query: str, sources: dict[str, Any], history: list[dict]) -> dict[str, Any]:
-        documents = rank_documents(query, _flatten_sources(sources), MAX_EVIDENCE_ITEMS)
+        documents = _select_evidence(query, _flatten_sources(sources), MAX_EVIDENCE_ITEMS)
         if not documents:
             return _empty_result(sources)
 
@@ -47,11 +44,6 @@ class EvaluationService:
             "evaluation": evaluation.model_dump(),
         }
 
-    @retry(
-        stop=stop_after_attempt(AGENT_CONFIG["RATE_LIMIT_RETRIES"]),
-        wait=wait_fixed(AGENT_CONFIG["RATE_LIMIT_DELAY_SECONDS"]),
-        reraise=True,
-    )
     def _analyze(self, query: str, documents: list[EvidenceDocument]) -> NarrativeAnalysis:
         payload = json.dumps([document.model_dump() for document in documents], ensure_ascii=False)
         return self.model.generate_structured(
@@ -74,11 +66,6 @@ invent facts, citations, quotations, dates, identities, or causal links.
             NarrativeAnalysis,
         )
 
-    @retry(
-        stop=stop_after_attempt(AGENT_CONFIG["RATE_LIMIT_RETRIES"]),
-        wait=wait_fixed(AGENT_CONFIG["RATE_LIMIT_DELAY_SECONDS"]),
-        reraise=True,
-    )
     def _judge(
         self,
         query: str,
@@ -108,6 +95,44 @@ DETERMINISTIC METRICS (diagnostic only; verify them against the documents):
 """.strip(),
             JudgeAssessment,
         )
+
+    def fallback(self, sources: dict[str, Any]) -> dict[str, Any]:
+        documents = _flatten_sources(sources)
+        news = [document for document in documents if document.source_type == "news"][:6]
+        social = [document for document in documents if document.source_type == "social"][:6]
+        lines = [
+            "# Retrieved sources",
+            "",
+            "> The automated comparison model was unavailable. These are source leads, not a claim verdict.",
+        ]
+        for heading, items in (("News coverage", news), ("Social coverage", social)):
+            lines.extend(["", f"## {heading}"])
+            if not items:
+                lines.append("No usable sources were returned.")
+            for item in items:
+                label = item.title or item.text[:120] or item.source
+                lines.append(f"- [{label}]({item.url}) — {item.source}")
+        lines.extend([
+            "",
+            "## Comparison limit",
+            "Agreement and disagreement were not inferred because the evaluator did not complete. Retry to generate the full evidence assessment.",
+        ])
+        return {
+            "reasoning": "",
+            "response": "\n".join(lines),
+            "research": _summarize_sources(sources),
+            "analysis": None,
+            "evaluation": None,
+        }
+
+
+def _select_evidence(query: str, documents: list[EvidenceDocument], limit: int) -> list[EvidenceDocument]:
+    news = [document for document in documents if document.source_type == "news"]
+    social = [document for document in documents if document.source_type == "social"]
+    if not news or not social:
+        return rank_documents(query, documents, limit)
+    per_source = limit // 2
+    return rank_documents(query, news, per_source) + rank_documents(query, social, per_source)
 
 
 def _flatten_sources(sources: dict[str, Any]) -> list[EvidenceDocument]:

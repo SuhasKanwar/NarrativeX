@@ -90,9 +90,11 @@ function ResearchBrief({ message, conversationId }: { message: Chat; conversatio
                 }
               }}
               aria-label={copy.export}
-              className="rounded-lg p-2 text-muted transition hover:bg-surface disabled:opacity-50"
+              title={copy.export}
+              className="flex items-center gap-2 rounded-lg p-2 text-muted transition hover:bg-surface disabled:opacity-50"
             >
               {exporting ? <LoaderCircle size={14} className="motion-safe:animate-spin" /> : <FileDown size={14} />}
+              <span className="hidden text-[10px] sm:inline">PDF</span>
             </button>
           )}
           <button

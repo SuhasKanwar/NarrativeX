@@ -30,7 +30,7 @@ class EvidenceDocument(BaseModel):
     published_at: str = ""
 
     def searchable_text(self) -> str:
-        return " ".join(part for part in (self.title, self.text) if part).strip()
+        return " ".join(part for part in (self.title, self.text) if part).strip()[:1000]
 
 
 class ClaimAssessment(BaseModel):

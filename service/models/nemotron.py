@@ -1,4 +1,3 @@
-import json
 import sys
 from typing import TypeVar
 
@@ -71,19 +70,11 @@ class Nemotron:
         schema: type[StructuredResult],
     ) -> StructuredResult:
         try:
-            response = self.llm.invoke([
+            result = self.llm.with_structured_output(schema).invoke([
                 self.system_prompt,
-                (
-                    "human",
-                    f"{prompt}\n\nReturn exactly one JSON object matching this schema, with no markdown "
-                    f"or commentary:\n{json.dumps(schema.model_json_schema())}",
-                ),
+                ("human", prompt),
             ])
-            content = response.content if isinstance(response.content, str) else str(response.content)
-            start, end = content.find("{"), content.rfind("}")
-            if start < 0 or end < start:
-                raise ValueError("The model did not return a JSON object")
-            return schema.model_validate_json(content[start:end + 1])
+            return schema.model_validate(result)
         except Exception as error:
             logger.error(f"Error generating structured response: {error}")
             raise NarrativeXException(

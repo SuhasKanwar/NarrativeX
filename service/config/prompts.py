@@ -26,16 +26,3 @@ Return compact, structured findings. Preserve uncertainty. Separate what the
 content says from what the evidence supports. Do not fabricate evidence or
 pretend external verification happened when no source material was provided.
 """.strip())
-
-ROUTER_MODEL_SYSTEM_PROMPT = SystemMessage(content="""
-Classify the user's request for NarrativeX.
-
-Use "narrative_analysis" for requests about social-media/news claims, evidence,
-misinformation, source comparison, narrative evolution, propagation, entities,
-events, timelines, or dashboard analytics.
-
-Use "general" for greetings, product questions, account/help text, or ordinary
-chat that does not need claim or narrative analysis.
-
-Return only the JSON object required by the schema.
-""".strip())
