@@ -10,8 +10,7 @@ NEMOTRON = {
     "TEMPERATURE": float(os.getenv("NEMOTRON_TEMPERATURE", "1.0")),
     "TOP_P": float(os.getenv("NEMOTRON_TOP_P", "0.95")),
     "MAX_TOKENS": int(os.getenv("NEMOTRON_MAX_TOKENS", "4096")),
-    "REASONING_BUDGET": int(os.getenv("NEMOTRON_REASONING_BUDGET", "2048")),
-    "CHAT_TEMPLATE_KWARGS": {"enable_thinking": True},
+    "CHAT_TEMPLATE_KWARGS": {"enable_thinking": True, "force_nonempty_content": True},
 }
 ROUTER_MODEL = {"MODEL_NAME": NVIDIA_NEMOTRON_MODEL}
 RESEARCH_MODEL = {"MODEL_NAME": NVIDIA_NEMOTRON_MODEL}
