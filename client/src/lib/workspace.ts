@@ -85,6 +85,12 @@ export const workspace = {
         { timeout: 210000 },
       )
     ).data.data,
+  exportPdf: async (id: string) =>
+    (
+      await http.get(`/api/conversation/report/${encodeURIComponent(id)}`, {
+        responseType: "blob",
+      })
+    ).data as Blob,
   rename: async (id: string, title: string) =>
     http.put(`/api/conversation/rename/${encodeURIComponent(id)}`, { title }),
   remove: async (id: string) =>

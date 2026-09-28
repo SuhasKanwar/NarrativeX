@@ -26,7 +26,8 @@ httpClient.interceptors.request.use(async (config) => {
 httpClient.interceptors.response.use(
     (response) => {
         if (typeof window !== "undefined") {
-            const message = response.data?.message;
+            const message = response.data?.message
+                ?? (response.config.responseType === "blob" ? "PDF exported successfully." : undefined);
             pushToast(
                 response.data?.success === false ? "error" : "success",
                 typeof message === "string" ? message : "Request completed.",

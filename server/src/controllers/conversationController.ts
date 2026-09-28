@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { db } from "../prisma/db";
 import { ConversationVariant } from "../prisma/enums";
+import { createResearchPdf } from "../services/reportService";
 import { parseConversationId, parseUserId } from "../utils/ids";
 
 export async function getConversationHandler(req: Request, res: Response) {
@@ -141,6 +142,41 @@ export async function renameConversationHandler(req: Request, res: Response) {
             success: false,
             message: "An error occurred while renaming the conversation.",
             error: error instanceof Error ? error.message : String(error),
+        });
+    }
+}
+
+export async function getConversationReportHandler(req: Request, res: Response) {
+    try {
+        const userId = parseUserId(req.userId);
+        const conversationId = parseConversationId(req.params.conversationId);
+        if (!userId) return res.status(401).json({ success: false, message: "Unauthorized access." });
+        if (!conversationId) {
+            return res.status(400).json({ success: false, message: "Conversation ID is required." });
+        }
+        const conversation = await db.orm.public.Conversation
+            .where({ id: conversationId, userId })
+            .first();
+        if (!conversation) {
+            return res.status(404).json({ success: false, message: "Conversation not found." });
+        }
+        const messages = await db.orm.public.Chat
+            .where({ conversationId })
+            .orderBy((chat) => chat.createdAt.asc())
+            .all();
+        const pdf = await createResearchPdf(conversation.title, messages);
+
+        res.set({
+            "Content-Type": "application/pdf",
+            "Content-Disposition": `attachment; filename="narrativex-${conversationId}.pdf"`,
+            "Content-Length": String(pdf.length),
+        });
+        return res.status(200).send(pdf);
+    } catch (error) {
+        console.error("Error generating conversation report:", error);
+        return res.status(500).json({
+            success: false,
+            message: "The PDF report could not be generated.",
         });
     }
 }

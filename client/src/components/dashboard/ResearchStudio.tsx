@@ -8,6 +8,7 @@ import {
   ArrowUpRight,
   Check,
   Copy,
+  FileDown,
   LoaderCircle,
   Pencil,
   Plus,
@@ -48,14 +49,17 @@ const copy = {
   copy: "Copy brief",
   copied: "Copied",
   copySuccess: "Research brief copied to clipboard.",
+  export: "Download PDF",
+  exportError: "The PDF could not be downloaded.",
   unavailable: "Could not update this investigation.",
   clipboard: "Could not copy. Select the text to copy it manually.",
   working: "INVESTIGATION IN PROGRESS",
   waiting: "Your brief will appear here when the research finishes.",
 };
 
-function ResearchBrief({ message }: { message: Chat }) {
+function ResearchBrief({ message, conversationId }: { message: Chat; conversationId?: string }) {
   const [copied, setCopied] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState("");
   return (
     <article className="overflow-hidden rounded-2xl border border-border bg-surface-raised">
@@ -64,22 +68,50 @@ function ResearchBrief({ message }: { message: Chat }) {
           <Sparkles size={14} className="text-accent" />
           {copy.report}
         </span>
-        <button
-          onClick={async () => {
-            try {
-              await navigator.clipboard.writeText(message.content || "");
-              setCopied(true);
-              pushToast("success", copy.copySuccess);
-            } catch {
-              setError(copy.clipboard);
-              pushToast("error", copy.clipboard);
-            }
-          }}
-          aria-label={copied ? copy.copied : copy.copy}
-          className="rounded-lg p-2 text-muted transition hover:bg-surface"
-        >
-          {copied ? <Check size={14} /> : <Copy size={14} />}
-        </button>
+        <div className="flex items-center gap-1">
+          {conversationId && (
+            <button
+              disabled={exporting}
+              onClick={async () => {
+                setExporting(true);
+                setError("");
+                try {
+                  const blob = await workspace.exportPdf(conversationId);
+                  const url = URL.createObjectURL(blob);
+                  const download = document.createElement("a");
+                  download.href = url;
+                  download.download = `narrativex-${conversationId}.pdf`;
+                  download.click();
+                  URL.revokeObjectURL(url);
+                } catch {
+                  setError(copy.exportError);
+                } finally {
+                  setExporting(false);
+                }
+              }}
+              aria-label={copy.export}
+              className="rounded-lg p-2 text-muted transition hover:bg-surface disabled:opacity-50"
+            >
+              {exporting ? <LoaderCircle size={14} className="motion-safe:animate-spin" /> : <FileDown size={14} />}
+            </button>
+          )}
+          <button
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(message.content || "");
+                setCopied(true);
+                pushToast("success", copy.copySuccess);
+              } catch {
+                setError(copy.clipboard);
+                pushToast("error", copy.clipboard);
+              }
+            }}
+            aria-label={copied ? copy.copied : copy.copy}
+            className="rounded-lg p-2 text-muted transition hover:bg-surface"
+          >
+            {copied ? <Check size={14} /> : <Copy size={14} />}
+          </button>
+        </div>
       </header>
       <div
         className="max-w-none break-words p-6 text-sm leading-7 [&_a]:text-focus [&_a]:underline [&_a]:underline-offset-4 [&_blockquote]:my-4 [&_blockquote]:border-l-2 [&_blockquote]:border-accent [&_blockquote]:pl-4 [&_h1]:mb-5 [&_h1]:font-editorial [&_h1]:text-3xl [&_h2]:my-5 [&_h2]:text-xl [&_h2]:tracking-tight [&_h3]:my-4 [&_h3]:font-semibold [&_li]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-3 [&_pre]:overflow-auto [&_pre]:rounded-lg [&_pre]:bg-surface [&_pre]:p-4 [&_table]:my-5 [&_table]:block [&_table]:overflow-auto [&_td]:border [&_td]:border-border [&_td]:p-3 [&_th]:border [&_th]:border-border [&_th]:p-3 [&_ul]:list-disc [&_ul]:pl-5"
@@ -370,7 +402,7 @@ export default function ResearchStudio({
                     </p>
                   </div>
                 ) : (
-                  <ResearchBrief message={message} />
+                  <ResearchBrief message={message} conversationId={conversationId} />
                 )}
               </Reveal>
             ))}
