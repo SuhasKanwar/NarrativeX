@@ -1,16 +1,20 @@
 import sys
-import os
+from typing import TypeVar
 
 from utils.logger import logger
 from utils.exception import NarrativeXException
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from pydantic import BaseModel
 
 from config.prompts import NEMOTRON_SYSTEM_PROMPT
 from config.models import NEMOTRON
 from config import NVIDIA_API_KEY
 
-class Nemotron():
+StructuredResult = TypeVar("StructuredResult", bound=BaseModel)
+
+
+class Nemotron:
     def __init__(self, model_name: str):
         self.model_name = model_name
         self.system_prompt = NEMOTRON_SYSTEM_PROMPT
@@ -60,3 +64,21 @@ class Nemotron():
         except Exception as e:
             logger.error(f"Error generating response: {str(e)}")
             raise NarrativeXException(f"Failed to generate response from Nemotron model ({self.model_name})", sys)
+
+    def generate_structured(
+        self,
+        prompt: str,
+        schema: type[StructuredResult],
+    ) -> StructuredResult:
+        try:
+            result = self.llm.with_structured_output(schema).invoke([
+                self.system_prompt,
+                ("human", prompt),
+            ])
+            return schema.model_validate(result)
+        except Exception as error:
+            logger.error(f"Error generating structured response: {error}")
+            raise NarrativeXException(
+                f"Failed to generate structured response from Nemotron model ({self.model_name})",
+                sys,
+            )
