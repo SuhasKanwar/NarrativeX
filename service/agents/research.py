@@ -1,12 +1,10 @@
-import json
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
-from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
 
 from config import NVIDIA_API_KEY
-from config.agent import AGENT_CONFIG
 from config.models import RESEARCH_MODEL
 from tools.server import search_news, search_social_posts
 
@@ -88,32 +86,16 @@ class ResearchAgent:
             )),
             HumanMessage(content=query),
         ]
-        calls: list[dict[str, Any]] = []
-
-        for iteration in range(AGENT_CONFIG["MAX_TOOL_CALLS"]):
-            model = self.client.bind_tools(
-                TOOLS,
-                tool_choice="required" if iteration == 0 else "auto",
-                parallel_tool_calls=True,
-            )
-            message = model.invoke(messages)
-            messages.append(message)
-            if not message.tool_calls:
-                break
-
-            with ThreadPoolExecutor(max_workers=len(message.tool_calls)) as executor:
-                results = list(executor.map(
-                    lambda call: _execute_tool(call, access_token),
-                    message.tool_calls,
-                ))
-            for tool_call, result in zip(message.tool_calls, results):
-                calls.append(result)
-                messages.append(ToolMessage(
-                    tool_call_id=tool_call["id"],
-                    name=tool_call["name"],
-                    content=json.dumps(result, default=str),
-                ))
-
+        message = self.client.bind_tools(
+            TOOLS,
+            tool_choice="required",
+            parallel_tool_calls=True,
+        ).invoke(messages)
+        with ThreadPoolExecutor(max_workers=max(len(message.tool_calls), 1)) as executor:
+            calls = list(executor.map(
+                lambda call: _execute_tool(call, access_token),
+                message.tool_calls,
+            ))
         return {"query": query, "calls": calls}
 
 

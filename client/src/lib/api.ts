@@ -27,7 +27,10 @@ httpClient.interceptors.response.use(
     (response) => {
         if (typeof window !== "undefined") {
             const message = response.data?.message;
-            pushToast("success", typeof message === "string" ? message : "Request completed.");
+            pushToast(
+                response.data?.success === false ? "error" : "success",
+                typeof message === "string" ? message : "Request completed.",
+            );
         }
         return response;
     },

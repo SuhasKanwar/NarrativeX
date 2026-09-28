@@ -83,13 +83,25 @@ export async function postChatHandler(req: Request, res: Response) {
             type: ChatType.text,
         });
 
-        const aiResponse = await aiService.post('/api/agent/query', {
-            query: content,
-            session_history: formattedHistory,
-            access_token: req.headers.authorization?.split(" ")[1]
-        });
-
-        const botText = aiResponse?.data?.response || "I'm sorry, I couldn't generate a response.";
+        let completed = true;
+        let botText: string;
+        try {
+            const aiResponse = await aiService.post('/api/agent/query', {
+                query: content,
+                session_history: formattedHistory,
+                access_token: req.headers.authorization?.split(" ")[1]
+            });
+            botText = aiResponse?.data?.response || "No research brief was returned.";
+        } catch (error) {
+            completed = false;
+            console.error("Research service failed after saving the user message:", error);
+            botText = [
+                "# Research could not be completed",
+                "",
+                "The source collection or evaluation service did not finish, so no evidence-based conclusion was generated.",
+                "Please retry this question. Your original question has been preserved in this investigation.",
+            ].join("\n");
+        }
 
         const botChat = await db.orm.public.Chat.create({
             conversationId,
@@ -103,8 +115,10 @@ export async function postChatHandler(req: Request, res: Response) {
             .update({ lastUpdated: new Date().toISOString() });
 
         return res.status(201).json({
-            success: true,
-            message: "Chat processed successfully",
+            success: completed,
+            message: completed
+                ? "Research brief generated successfully."
+                : "Research was interrupted. A retry note was saved.",
             data: [userChat, botChat]
         });
     } catch (error) {

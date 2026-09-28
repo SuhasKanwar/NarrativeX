@@ -19,10 +19,7 @@ class ResearchAgentTest(unittest.TestCase):
             "args": {"query": "verified climate claim", "page_size": 4},
         }
         client = Mock()
-        client.bind_tools.return_value.invoke.side_effect = [
-            SimpleNamespace(tool_calls=[tool_call]),
-            SimpleNamespace(tool_calls=[]),
-        ]
+        client.bind_tools.return_value.invoke.return_value = SimpleNamespace(tool_calls=[tool_call])
 
         result = ResearchAgent(client).collect("check this climate claim", "token")
 
@@ -32,7 +29,7 @@ class ResearchAgentTest(unittest.TestCase):
         self.assertEqual(result["calls"][0]["tool"], "search_news")
         self.assertEqual(
             [call.kwargs["tool_choice"] for call in client.bind_tools.call_args_list],
-            ["required", "auto"],
+            ["required"],
         )
 
 
