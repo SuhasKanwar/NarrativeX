@@ -8,4 +8,3 @@ class AgentState(TypedDict):
     reasoning: str
     source_context: dict[str, Any]
     final_response: Any
-    iterations: int

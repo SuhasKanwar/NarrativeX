@@ -38,10 +38,11 @@ class EvaluationService:
             4,
         )
         evaluation = EvaluationResult(quality_score=quality_score, judge=judge, metrics=metrics)
+        research = _summarize_sources(sources)
         return {
             "reasoning": "",
-            "response": _render_report(analysis, evaluation, documents),
-            "research": _summarize_sources(sources),
+            "response": _render_report(analysis, evaluation, documents, research),
+            "research": research,
             "analysis": analysis.model_dump(),
             "evaluation": evaluation.model_dump(),
         }
@@ -150,11 +151,19 @@ def _safe_url(value: str) -> bool:
 
 def _summarize_sources(sources: dict[str, Any]) -> dict[str, Any]:
     calls = sources.get("calls", [])
+    errors = [str(call["error"]) for call in calls if call.get("error")]
+    for call in calls:
+        for error in (call.get("data") or {}).get("errors", []):
+            if isinstance(error, dict):
+                provider = error.get("platform") or error.get("provider") or "provider"
+                errors.append(f"{provider}: {error.get('message', 'request failed')}")
+            else:
+                errors.append(str(error))
     return {
         "tool_calls": [call.get("tool") for call in calls],
         "news_articles": sum(len((call.get("data") or {}).get("articles", [])) for call in calls),
         "social_posts": sum(len((call.get("data") or {}).get("posts", [])) for call in calls),
-        "errors": [call["error"] for call in calls if call.get("error")],
+        "errors": errors,
     }
 
 
@@ -179,6 +188,7 @@ def _render_report(
     analysis: NarrativeAnalysis,
     evaluation: EvaluationResult,
     documents: list[EvidenceDocument],
+    research: dict[str, Any],
 ) -> str:
     known_urls = {document.url for document in documents}
     lines = ["# Narrative assessment", "", analysis.summary, "", "## Claims"]
@@ -223,6 +233,12 @@ def _render_report(
         f"- Source diversity {metrics.source_diversity:.3f}; redundancy "
         f"{metrics.source_redundancy:.3f}; temporal span {metrics.temporal_span_hours:.1f} hours",
     ])
+    if evaluation.quality_score < 0.6:
+        lines.extend(["", "> Low-confidence evaluation: verify the highlighted claims against primary sources."])
     if judge.unsupported_claims:
         lines.extend(["", "Judge flags:", *[f"- {item}" for item in judge.unsupported_claims]])
+    if judge.notes:
+        lines.extend(["", "Judge notes:", *[f"- {item}" for item in judge.notes]])
+    if research["errors"]:
+        lines.extend(["", "Retrieval limitations:", *[f"- {item}" for item in research["errors"]]])
     return "\n".join(lines)

@@ -24,7 +24,8 @@ class ModelRouter:
         model = client or ChatNVIDIA(
             model=self.model_name,
             api_key=NVIDIA_API_KEY,
-            temperature=0,
+            temperature=1.0,
+            top_p=0.95,
             max_completion_tokens=256,
         )
         self.router_model = model.with_structured_output(RouteDecision)

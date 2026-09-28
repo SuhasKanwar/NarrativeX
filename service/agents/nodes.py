@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from agents.state import AgentState
 from agents.research import ResearchAgent
 from models.gpt_oss import GPTOSS
@@ -5,15 +7,29 @@ from services.router import ModelRouter
 from services.evaluation import EvaluationService
 from utils.logger import logger
 
-router_client = ModelRouter()
-general_client = GPTOSS()
-research_agent = ResearchAgent()
-evaluation_service = EvaluationService()
+@lru_cache(maxsize=1)
+def _router() -> ModelRouter:
+    return ModelRouter()
+
+
+@lru_cache(maxsize=1)
+def _general_model() -> GPTOSS:
+    return GPTOSS()
+
+
+@lru_cache(maxsize=1)
+def _research_agent() -> ResearchAgent:
+    return ResearchAgent()
+
+
+@lru_cache(maxsize=1)
+def _evaluation_service() -> EvaluationService:
+    return EvaluationService()
 
 def router_node(state: AgentState) -> dict:
     query = state.get("query", "")
     
-    classification, reasoning = router_client.route_request(query)
+    classification, reasoning = _router().route_request(query)
     logger.info(f"Graph router classified as: {classification} \n\n Reason: {reasoning}")
     
     return {"classification": classification, "reasoning": reasoning}
@@ -24,7 +40,7 @@ def general_node(state: AgentState) -> dict:
     session_history = state.get("session_history", [])
     
     try:
-        response = general_client.generate_response(query, session_history)
+        response = _general_model().generate_response(query, session_history)
         analysis = {
             "reasoning": reasoning,
             "response": response.get("text", "")
@@ -41,7 +57,7 @@ def general_node(state: AgentState) -> dict:
 def research_node(state: AgentState) -> dict:
     query = state.get("query", "")
     access_token = state.get("access_token")
-    source_context = research_agent.collect(query, access_token)
+    source_context = _research_agent().collect(query, access_token)
 
     return {"source_context": source_context}
 
@@ -51,7 +67,7 @@ def analysis_node(state: AgentState) -> dict:
     session_history = state.get("session_history", [])
 
     try:
-        analysis = evaluation_service.evaluate(query, source_context, session_history)
+        analysis = _evaluation_service().evaluate(query, source_context, session_history)
     except Exception as e:
         logger.error(f"Analysis node failed: {e}")
         analysis = {

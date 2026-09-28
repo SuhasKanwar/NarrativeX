@@ -1,4 +1,5 @@
 import json
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
@@ -65,8 +66,9 @@ class ResearchAgent:
         self.client = client or ChatNVIDIA(
             model=RESEARCH_MODEL["MODEL_NAME"],
             api_key=NVIDIA_API_KEY,
-            temperature=0.2,
-            max_completion_tokens=2048,
+            temperature=1.0,
+            top_p=0.95,
+            max_completion_tokens=4096,
             model_kwargs={
                 "chat_template_kwargs": {
                     "enable_thinking": True,
@@ -80,8 +82,9 @@ class ResearchAgent:
             SystemMessage(content=(
                 "You collect evidence for NarrativeX. Choose precise API parameters from the user's "
                 "request. For narrative analysis, search both news and social sources unless the user "
-                "explicitly limits the source type. Prefer recent, relevant results and stop when the "
-                "available calls are sufficient. Never answer from memory."
+                "explicitly limits the source type. Prefer recent, relevant results and call independent "
+                "news and social tools together when possible. Stop when the available calls are sufficient. "
+                "Never answer from memory and never repeat an identical tool call."
             )),
             HumanMessage(content=query),
         ]
@@ -91,35 +94,39 @@ class ResearchAgent:
             model = self.client.bind_tools(
                 TOOLS,
                 tool_choice="required" if iteration == 0 else "auto",
+                parallel_tool_calls=True,
             )
             message = model.invoke(messages)
             messages.append(message)
             if not message.tool_calls:
                 break
 
-            for tool_call in message.tool_calls:
-                name = tool_call["name"]
-                try:
-                    arguments = {
-                        key: value
-                        for key, value in tool_call["args"].items()
-                        if value is not None
-                    }
-                    if name == "search_news":
-                        data = search_news(access_token=access_token, **arguments)
-                    elif name == "search_social_posts":
-                        data = search_social_posts(access_token=access_token, **arguments)
-                    else:
-                        raise ValueError(f"Unknown tool: {name}")
-                    result = {"tool": name, "arguments": arguments, "data": data}
-                except Exception as error:
-                    result = {"tool": name, "error": str(error)}
-
+            with ThreadPoolExecutor(max_workers=len(message.tool_calls)) as executor:
+                results = list(executor.map(
+                    lambda call: _execute_tool(call, access_token),
+                    message.tool_calls,
+                ))
+            for tool_call, result in zip(message.tool_calls, results):
                 calls.append(result)
                 messages.append(ToolMessage(
                     tool_call_id=tool_call["id"],
-                    name=name,
+                    name=tool_call["name"],
                     content=json.dumps(result, default=str),
                 ))
 
         return {"query": query, "calls": calls}
+
+
+def _execute_tool(tool_call: dict[str, Any], access_token: str | None) -> dict[str, Any]:
+    name = tool_call["name"]
+    arguments = {key: value for key, value in tool_call["args"].items() if value is not None}
+    try:
+        if name == "search_news":
+            data = search_news(access_token=access_token, **arguments)
+        elif name == "search_social_posts":
+            data = search_social_posts(access_token=access_token, **arguments)
+        else:
+            raise ValueError(f"Unknown tool: {name}")
+        return {"tool": name, "arguments": arguments, "data": data}
+    except Exception as error:
+        return {"tool": name, "arguments": arguments, "error": str(error)}

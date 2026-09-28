@@ -15,10 +15,13 @@ parameters, and evaluates how claims relate, change, and spread.
 authenticated chat request
   -> server /api/conversation/chat/:id
   -> service /api/agent/query
-  -> NVIDIA Nemotron routes requests and selects news/social tool parameters
-  -> service tools call authenticated server APIs
+  -> NVIDIA Nemotron Ultra routes requests and selects news/social tool parameters
+  -> independent tool calls run concurrently against authenticated server APIs
   -> server fetches and normalizes provider data
-  -> NVIDIA Nemotron compares claims, evidence, relationships, and propagation
+  -> NVIDIA Nemotron Ultra extracts structured claims, relationships, and propagation
+  -> NVIDIA Embed computes semantic scores with a local TF-IDF fallback
+  -> a separate LLM judge scores groundedness, relevance, completeness, and source quality
+  -> deterministic evidence metrics are combined with the judge scores
   -> response is stored in the conversation
 ```
 
@@ -36,12 +39,19 @@ evaluated.
 ## Model roles
 
 - `nvidia/nemotron-3-ultra-550b-a55b` routes requests, chooses news/social API parameters,
-  and performs claim and relationship analysis.
+  performs claim and relationship analysis, and judges the grounded output.
+- `nvidia/nemotron-3-embed-1b` measures semantic query/source relevance and source redundancy.
 - Groq `openai/gpt-oss-120b` handles ordinary conversation that needs no retrieval.
 
 Model IDs are fixed in `service/config/models.py`; environment files contain provider
 credentials and runtime settings only. Source payloads are treated as untrusted data, and
 the evaluator preserves uncertainty instead of treating search results as proof.
+
+The runtime evaluation uses two independent signals. The structured LLM judge assesses
+groundedness, relevance, completeness, and source quality. The mathematical layer reports cosine
+similarity, Jaccard overlap, evidence coverage, citation validity, cross-source corroboration,
+normalized source entropy, source redundancy, and temporal coverage. If the NVIDIA embedding
+endpoint is unavailable, semantic scores fall back to local TF-IDF vectors and disclose that fact.
 
 ## Setup
 

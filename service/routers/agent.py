@@ -17,7 +17,6 @@ async def execute_query(request: QueryRequest):
             "reasoning": "",
             "source_context": {},
             "final_response": "",
-            "iterations": 0
         }
         
         logger.info(f"Starting agent graph for query: {request.query}")
