@@ -71,7 +71,10 @@ class CoverageComparison(BaseModel):
 
 class NarrativeAnalysis(BaseModel):
     summary: str
-    comparisons: list[CoverageComparison] = Field(default_factory=list)
+    comparisons: list[CoverageComparison] = Field(
+        min_length=1,
+        description="At least one grounded comparison between news and social coverage.",
+    )
     claims: list[ClaimAssessment] = Field(default_factory=list)
     relationships: list[ClaimRelationship] = Field(default_factory=list)
     entities: list[str] = Field(default_factory=list)

@@ -67,8 +67,7 @@ class ResearchAgent:
         ]
         message = self.client.bind_tools(
             TOOLS,
-            tool_choice="required",
-            parallel_tool_calls=True,
+            tool_choice="compare_news_and_social",
         ).invoke(messages)
         if not message.tool_calls:
             error = "The research planner did not produce comparison parameters"

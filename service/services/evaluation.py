@@ -20,6 +20,11 @@ class EvaluationService:
         documents = _select_evidence(query, _flatten_sources(sources), MAX_EVIDENCE_ITEMS)
         if not documents:
             return _empty_result(sources)
+        if {document.source_type for document in documents} != {"news", "social"}:
+            return self.fallback(
+                sources,
+                "A defensible comparison requires at least one usable news article and one social post.",
+            )
 
         analysis = self._analyze(query, documents)
         metrics = self.metrics.evaluate(query, documents, analysis)
@@ -106,14 +111,18 @@ DETERMINISTIC METRICS (diagnostic only; verify them against the documents):
             JudgeAssessment,
         )
 
-    def fallback(self, sources: dict[str, Any]) -> dict[str, Any]:
+    def fallback(
+        self,
+        sources: dict[str, Any],
+        reason: str = "The automated comparison model was unavailable.",
+    ) -> dict[str, Any]:
         documents = _flatten_sources(sources)
         news = [document for document in documents if document.source_type == "news"][:6]
         social = [document for document in documents if document.source_type == "social"][:6]
         lines = [
             "# Retrieved sources",
             "",
-            "> The automated comparison model was unavailable. These are source leads, not a claim verdict.",
+            f"> {reason} These are source leads, not a claim verdict.",
         ]
         for heading, items in (("News coverage", news), ("Social coverage", social)):
             lines.extend(["", f"## {heading}"])
@@ -211,10 +220,15 @@ def _empty_result(sources: dict[str, Any]) -> dict[str, Any]:
             "social posts were returned. Try a more specific topic or check the configured providers."
         ),
         "research": _summarize_sources(sources),
-        "analysis": NarrativeAnalysis(
-            summary="No usable evidence was retrieved.",
-            unknowns=["The requested claims could not be evaluated without source material."],
-        ).model_dump(),
+        "analysis": {
+            "summary": "No usable evidence was retrieved.",
+            "comparisons": [],
+            "claims": [],
+            "relationships": [],
+            "entities": [],
+            "propagation_signals": [],
+            "unknowns": ["The requested claims could not be evaluated without source material."],
+        },
         "evaluation": None,
     }
 

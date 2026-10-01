@@ -48,7 +48,7 @@ class ResearchAgentTest(unittest.TestCase):
         ])
         self.assertEqual(
             [call.kwargs["tool_choice"] for call in client.bind_tools.call_args_list],
-            ["required"],
+            ["compare_news_and_social"],
         )
 
 
