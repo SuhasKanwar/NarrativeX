@@ -10,13 +10,25 @@ from agents.research import ResearchAgent
 
 
 class ResearchAgentTest(unittest.TestCase):
+    @patch("agents.research.search_social_posts")
     @patch("agents.research.search_news")
-    def test_model_parameters_drive_server_tool(self, search_news: Mock):
+    def test_model_parameters_drive_both_server_tools(
+        self,
+        search_news: Mock,
+        search_social_posts: Mock,
+    ):
         search_news.return_value = {"articles": []}
+        search_social_posts.return_value = {"posts": []}
         tool_call = {
             "id": "call-1",
-            "name": "search_news",
-            "args": {"query": "verified climate claim", "page_size": 4},
+            "name": "compare_news_and_social",
+            "args": {
+                "topic": "verified climate claim",
+                "news_page_size": 4,
+                "language": "en",
+                "sort_by": "relevancy",
+                "social_limit": 4,
+            },
         }
         client = Mock()
         client.bind_tools.return_value.invoke.return_value = SimpleNamespace(tool_calls=[tool_call])
@@ -25,8 +37,15 @@ class ResearchAgentTest(unittest.TestCase):
 
         search_news.assert_called_once_with(
             access_token="token", query="verified climate claim", page_size=4,
+            language="en", sort_by="relevancy",
         )
-        self.assertEqual(result["calls"][0]["tool"], "search_news")
+        search_social_posts.assert_called_once_with(
+            access_token="token", topics=["verified climate claim"],
+            platforms=None, limit=4,
+        )
+        self.assertEqual([call["tool"] for call in result["calls"]], [
+            "search_news", "search_social_posts",
+        ])
         self.assertEqual(
             [call.kwargs["tool_choice"] for call in client.bind_tools.call_args_list],
             ["required"],

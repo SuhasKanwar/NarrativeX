@@ -16,8 +16,8 @@ authenticated chat request
   -> server /api/conversation/chat/:id
   -> service /api/agent/query
   -> deterministic routing selects chat or research without a model round trip
-  -> NVIDIA Nemotron Ultra selects news/social tool parameters
-  -> independent tool calls run concurrently against authenticated server APIs
+  -> NVIDIA Nemotron Ultra plans one paired news/social comparison search
+  -> news and social server tools always run concurrently with the same topic
   -> server fetches and normalizes provider data
   -> NVIDIA Nemotron Super extracts structured claims, relationships, and propagation
   -> NVIDIA Embed computes semantic scores with a local TF-IDF fallback
@@ -50,10 +50,14 @@ credentials and runtime settings only. Source payloads are treated as untrusted 
 the evaluator preserves uncertainty instead of treating search results as proof.
 
 The runtime evaluation uses two independent signals. The structured LLM judge assesses
-groundedness, relevance, completeness, and source quality. The mathematical layer reports cosine
-similarity, Jaccard overlap, evidence coverage, citation validity, cross-source corroboration,
-normalized source entropy, source redundancy, and temporal coverage. If the NVIDIA embedding
-endpoint is unavailable, semantic scores fall back to local TF-IDF vectors and disclose that fact.
+groundedness, relevance, completeness, source quality, and cross-media comparison quality. Every
+comparison must cite at least one retrieved news URL and one retrieved social URL. The mathematical
+layer reports cosine similarity, Jaccard overlap, evidence coverage, citation validity, cross-media
+coverage, comparison-citation validity, cross-source corroboration, normalized source entropy,
+source redundancy, and temporal coverage. Reports show the comparison first, then the claims,
+evaluation, research coverage, retrieval limitations, and every evaluated source. If the NVIDIA
+embedding endpoint is unavailable, semantic scores fall back to local TF-IDF vectors and disclose
+that fact.
 
 ## Setup
 

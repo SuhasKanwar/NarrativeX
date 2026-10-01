@@ -19,6 +19,13 @@ RelationshipType = Literal[
     "causal_association",
     "unrelated",
 ]
+ComparisonRelation = Literal[
+    "agree",
+    "partially_agree",
+    "disagree",
+    "different_emphasis",
+    "insufficient_evidence",
+]
 
 
 class EvidenceDocument(BaseModel):
@@ -51,8 +58,20 @@ class ClaimRelationship(BaseModel):
     rationale: str
 
 
+class CoverageComparison(BaseModel):
+    topic: str
+    relationship: ComparisonRelation
+    news_position: str
+    social_position: str
+    news_urls: list[str] = Field(min_length=1)
+    social_urls: list[str] = Field(min_length=1)
+    confidence: float = Field(ge=0, le=1)
+    rationale: str
+
+
 class NarrativeAnalysis(BaseModel):
     summary: str
+    comparisons: list[CoverageComparison] = Field(default_factory=list)
     claims: list[ClaimAssessment] = Field(default_factory=list)
     relationships: list[ClaimRelationship] = Field(default_factory=list)
     entities: list[str] = Field(default_factory=list)
@@ -65,6 +84,7 @@ class JudgeAssessment(BaseModel):
     answer_relevance: float = Field(ge=0, le=1)
     completeness: float = Field(ge=0, le=1)
     source_quality: float = Field(ge=0, le=1)
+    comparison_quality: float = Field(ge=0, le=1)
     unsupported_claims: list[str] = Field(default_factory=list)
     notes: list[str] = Field(default_factory=list)
 
@@ -77,6 +97,8 @@ class MathematicalMetrics(BaseModel):
     claim_evidence_jaccard_mean: float = Field(ge=0, le=1)
     evidence_coverage: float = Field(ge=0, le=1)
     citation_validity: float = Field(ge=0, le=1)
+    comparison_citation_validity: float = Field(ge=0, le=1)
+    cross_media_coverage: float = Field(ge=0, le=1)
     cross_source_corroboration: float = Field(ge=0, le=1)
     source_diversity: float = Field(ge=0, le=1)
     source_redundancy: float = Field(ge=0, le=1)

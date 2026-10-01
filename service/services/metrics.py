@@ -99,6 +99,12 @@ class MetricsEvaluator:
         urls = {document.url: document for document in documents}
         cited_urls = [url for claim in analysis.claims for url in claim.evidence_urls + claim.counter_evidence_urls]
         valid_urls = [url for url in cited_urls if url in urls]
+        valid_comparisons = [
+            comparison
+            for comparison in analysis.comparisons
+            if any(url in urls and urls[url].source_type == "news" for url in comparison.news_urls)
+            and any(url in urls and urls[url].source_type == "social" for url in comparison.social_urls)
+        ]
         covered_claims = [claim for claim in analysis.claims if any(url in urls for url in claim.evidence_urls + claim.counter_evidence_urls)]
         corroborated = [
             claim
@@ -130,6 +136,11 @@ class MetricsEvaluator:
             claim_evidence_jaccard_mean=round(_mean(claim_jaccards), 4),
             evidence_coverage=round(len(covered_claims) / claim_count, 4) if claim_count else 0.0,
             citation_validity=round(len(valid_urls) / len(cited_urls), 4) if cited_urls else 0.0,
+            comparison_citation_validity=(
+                round(len(valid_comparisons) / len(analysis.comparisons), 4)
+                if analysis.comparisons else 0.0
+            ),
+            cross_media_coverage=float({document.source_type for document in documents} == {"news", "social"}),
             cross_source_corroboration=round(len(corroborated) / claim_count, 4) if claim_count else 0.0,
             source_diversity=round(_normalized_entropy(sources), 4),
             source_redundancy=round(_mean(pairwise), 4),
