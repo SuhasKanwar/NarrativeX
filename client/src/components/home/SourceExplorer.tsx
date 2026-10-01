@@ -6,7 +6,7 @@ import {
   Newspaper,
   MessagesSquare,
   Radio,
-  Code2,
+  Share2,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -52,14 +52,14 @@ const content = {
       tags: ["Public posts", "Shared links", "Emerging perspectives"],
     },
     {
-      id: "hackernews",
-      label: "Hacker News",
-      icon: Code2,
-      title: "Where ideas meet scrutiny.",
+      id: "mastodon",
+      label: "Mastodon",
+      icon: Share2,
+      title: "Where communities connect.",
       description:
-        "Explore technology and science stories through a community that asks how things work. Keep the submitted article and its discussion connected.",
-      detail: "Story titles, linked articles, discussion threads, and scores.",
-      tags: ["Technology", "Science", "Community insight"],
+        "Public posts across the federated social web reveal how communities frame and discuss developing stories.",
+      detail: "Public posts, author attribution, shared links, and engagement.",
+      tags: ["Federated communities", "Public posts", "Discussion"],
     },
   ],
 };

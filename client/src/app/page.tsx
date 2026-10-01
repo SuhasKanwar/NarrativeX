@@ -23,7 +23,7 @@ const content = {
   secondary: { label: "Discover the approach", href: "#approach" },
   footnote: "Follow the evidence. Find your perspective.",
   sourcesLabel: "Different sources. A shared perspective.",
-  sources: ["News & journalism", "Reddit", "Bluesky", "Hacker News"],
+  sources: ["News & journalism", "Reddit", "Bluesky", "Mastodon"],
   intro: {
     label: "01 / THE BIGGER PICTURE",
     title: "More information.\nLess understanding.",

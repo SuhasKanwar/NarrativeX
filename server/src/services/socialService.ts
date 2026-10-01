@@ -4,7 +4,7 @@ import {
   REDDIT_USER_AGENT,
 } from "../lib/config";
 
-export const SOCIAL_PLATFORMS = ["reddit", "bluesky", "hackernews"] as const;
+export const SOCIAL_PLATFORMS = ["reddit", "bluesky", "mastodon"] as const;
 export type SocialPlatform = typeof SOCIAL_PLATFORMS[number];
 
 export type SocialPost = {
@@ -114,29 +114,60 @@ export async function fetchBluesky(topic: string, limit: number): Promise<Social
   });
 }
 
-export async function fetchHackerNews(topic: string, limit: number): Promise<SocialPost[]> {
-  const params = new URLSearchParams({ query: topic, tags: "story", hitsPerPage: String(limit) });
-  const data = await getJson<any>(`https://hn.algolia.com/api/v1/search_by_date?${params}`);
+export async function fetchMastodon(topic: string, limit: number): Promise<SocialPost[]> {
+  const searchParams = new URLSearchParams({ q: topic, type: "hashtags", limit: "3" });
+  const search = await getJson<any>(`https://mastodon.social/api/v2/search?${searchParams}`);
+  const tags = (search.hashtags || []).map((tag: any) => tag.name).filter(Boolean).slice(0, 3);
+  if (!tags.length) return [];
 
-  return (data.hits || []).map((post: any) => ({
-    id: post.objectID,
-    platform: "hackernews",
-    topic,
-    author: post.author || null,
-    title: post.title || null,
-    content: post.story_text || null,
-    url: `https://news.ycombinator.com/item?id=${post.objectID}`,
-    externalUrl: post.url || null,
-    community: "Hacker News",
-    publishedAt: post.created_at,
-    engagement: { score: post.points || 0, comments: post.num_comments || 0 },
-  }));
+  const statuses = (await Promise.all(tags.map((tag: string) => {
+    const params = new URLSearchParams({ limit: String(limit) });
+    return getJson<any[]>(`https://mastodon.social/api/v1/timelines/tag/${encodeURIComponent(tag)}?${params}`);
+  }))).flat();
+  const unique = [...new Map(statuses.map((status: any) => [
+    (status.reblog || status).id,
+    status,
+  ])).values()];
+
+  return unique.slice(0, limit).map((item: any) => {
+    const post = item.reblog || item;
+    const account = post.account || {};
+    return {
+      id: post.id,
+      platform: "mastodon",
+      topic,
+      author: account.acct || account.username || null,
+      title: post.spoiler_text || null,
+      content: stripHtml(post.content || "") || null,
+      url: post.url || post.uri,
+      externalUrl: post.card?.url || null,
+      community: account.acct?.split("@")[1] || "mastodon.social",
+      publishedAt: post.created_at,
+      engagement: {
+        comments: post.replies_count || 0,
+        likes: post.favourites_count || 0,
+        reposts: post.reblogs_count || 0,
+      },
+    };
+  });
+}
+
+function stripHtml(value: string): string {
+  const entities: Record<string, string> = {
+    amp: "&", lt: "<", gt: ">", quot: '"', "#39": "'", nbsp: " ",
+  };
+  return value
+    .replace(/<\/?(?:p|div|br)[^>]*>/gi, " ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&(amp|lt|gt|quot|#39|nbsp);/g, (_, entity) => entities[entity])
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 const fetchers: Record<SocialPlatform, (topic: string, limit: number) => Promise<SocialPost[]>> = {
   reddit: fetchReddit,
   bluesky: fetchBluesky,
-  hackernews: fetchHackerNews,
+  mastodon: fetchMastodon,
 };
 
 export async function fetchSocialPosts(

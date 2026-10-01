@@ -32,7 +32,7 @@ behavior, and normalized response contracts have one owner:
 - NewsAPI with Google News RSS fallback
 - Reddit OAuth client credentials
 - Bluesky public search
-- Hacker News Algolia search
+- Mastodon public hashtag search
 
 Partial social-provider failures remain in `data.errors`; successful sources are still
 evaluated.

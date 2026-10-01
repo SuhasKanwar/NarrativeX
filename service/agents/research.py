@@ -61,7 +61,7 @@ class ResearchAgent:
                 "You collect evidence for NarrativeX. Choose precise API parameters from the user's "
                 "request. Call the comparison tool exactly once so every investigation searches both news "
                 "and social sources. Use closely aligned search terms for a fair comparison, include Reddit, "
-                "Bluesky, and Hacker News, and prefer recent relevant results. Never answer from memory."
+                "Bluesky, and Mastodon, and prefer recent relevant results. Never answer from memory."
             )),
             HumanMessage(content=query),
         ]

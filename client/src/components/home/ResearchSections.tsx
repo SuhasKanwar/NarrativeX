@@ -52,7 +52,7 @@ const content = {
       {
         question: "Which sources can I explore?",
         answer:
-          "The collection layer supports news search, Reddit, Bluesky, and Hacker News. Results depend on provider access, credentials, and availability. Some sources may be unavailable while others continue to return results.",
+          "The collection layer supports news search, Reddit, Bluesky, and Mastodon. Results depend on provider access, credentials, and availability. Some sources may be unavailable while others continue to return results.",
       },
       {
         question: "Does NarrativeX decide what is true?",
