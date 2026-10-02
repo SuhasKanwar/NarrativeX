@@ -94,17 +94,29 @@ class JudgeAssessment(BaseModel):
 
 class MathematicalMetrics(BaseModel):
     embedding_backend: str
-    query_source_cosine_mean: float = Field(ge=0, le=1)
-    query_source_cosine_max: float = Field(ge=0, le=1)
-    claim_evidence_cosine_mean: float = Field(ge=0, le=1)
-    claim_evidence_jaccard_mean: float = Field(ge=0, le=1)
+    claim_evidence_backend: str = "none"
+    query_source_cosine_mean: float = Field(ge=-1, le=1)
+    query_source_cosine_max: float = Field(ge=-1, le=1)
+    news_query_cosine_mean: float = Field(default=0, ge=-1, le=1)
+    social_query_cosine_mean: float = Field(default=0, ge=-1, le=1)
+    claim_evidence_cosine_mean: float = Field(ge=-1, le=1)
     evidence_coverage: float = Field(ge=0, le=1)
     citation_validity: float = Field(ge=0, le=1)
     comparison_citation_validity: float = Field(ge=0, le=1)
     cross_media_coverage: float = Field(ge=0, le=1)
-    cross_source_corroboration: float = Field(ge=0, le=1)
+    cross_media_balance: float = Field(
+        default=0,
+        ge=0,
+        le=1,
+        description="2 * min(news_count, social_count) / total_count; sample balance, not quality.",
+    )
+    cross_source_corroboration: float = Field(
+        ge=0,
+        le=1,
+        description="Claims citing two distinct source labels; does not establish source independence.",
+    )
     source_diversity: float = Field(ge=0, le=1)
-    source_redundancy: float = Field(ge=0, le=1)
+    source_redundancy: float = Field(ge=-1, le=1)
     temporal_span_hours: float = Field(ge=0)
 
 

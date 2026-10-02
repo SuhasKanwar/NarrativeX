@@ -44,12 +44,6 @@ def _mean(values: list[float]) -> float:
     return sum(values) / len(values) if values else 0.0
 
 
-def _jaccard(left: str, right: str) -> float:
-    left_tokens, right_tokens = _tokens(left), _tokens(right)
-    union = left_tokens | right_tokens
-    return len(left_tokens & right_tokens) / len(union) if union else 0.0
-
-
 def _normalized_entropy(values: list[str]) -> float:
     if len(set(values)) <= 1:
         return 0.0
@@ -106,20 +100,14 @@ class MetricsEvaluator:
             and any(url in urls and urls[url].source_type == "social" for url in comparison.social_urls)
         ]
         covered_claims = [claim for claim in analysis.claims if any(url in urls for url in claim.evidence_urls + claim.counter_evidence_urls)]
-        corroborated = [
+        multi_source_claims = [
             claim
             for claim in analysis.claims
             if len({urls[url].source for url in claim.evidence_urls if url in urls}) >= 2
         ]
-        claim_cosines: list[float] = []
-        claim_jaccards: list[float] = []
-        for claim in analysis.claims:
-            evidence = [urls[url].searchable_text() for url in claim.evidence_urls + claim.counter_evidence_urls if url in urls]
-            if not evidence:
-                continue
-            vectors = _tfidf_vectors([claim.claim, *evidence])
-            claim_cosines.append(max(_cosine(vectors[0], vector) for vector in vectors[1:]))
-            claim_jaccards.append(max(_jaccard(claim.claim, text) for text in evidence))
+        claim_cosines, claim_backend = self._claim_evidence_similarity(
+            analysis, urls, document_vectors, backend,
+        )
 
         pairwise = [
             _cosine(document_vectors[left], document_vectors[right])
@@ -127,13 +115,26 @@ class MetricsEvaluator:
             for right in range(left + 1, len(document_vectors))
         ]
         sources = [f"{document.source_type}:{document.source}" for document in documents]
+        news_count = sum(document.source_type == "news" for document in documents)
+        social_count = sum(document.source_type == "social" for document in documents)
+        evidence_count = news_count + social_count
+        news_query_cosines = [
+            score for document, score in zip(documents, similarities)
+            if document.source_type == "news"
+        ]
+        social_query_cosines = [
+            score for document, score in zip(documents, similarities)
+            if document.source_type == "social"
+        ]
         claim_count = len(analysis.claims)
         return MathematicalMetrics(
             embedding_backend=backend,
+            claim_evidence_backend=claim_backend,
             query_source_cosine_mean=round(_mean(similarities), 4),
-            query_source_cosine_max=round(max(similarities, default=0.0), 4),
+            query_source_cosine_max=round(max(similarities) if similarities else 0.0, 4),
+            news_query_cosine_mean=round(_mean(news_query_cosines), 4),
+            social_query_cosine_mean=round(_mean(social_query_cosines), 4),
             claim_evidence_cosine_mean=round(_mean(claim_cosines), 4),
-            claim_evidence_jaccard_mean=round(_mean(claim_jaccards), 4),
             evidence_coverage=round(len(covered_claims) / claim_count, 4) if claim_count else 0.0,
             citation_validity=round(len(valid_urls) / len(cited_urls), 4) if cited_urls else 0.0,
             comparison_citation_validity=(
@@ -141,11 +142,69 @@ class MetricsEvaluator:
                 if analysis.comparisons else 0.0
             ),
             cross_media_coverage=float({document.source_type for document in documents} == {"news", "social"}),
-            cross_source_corroboration=round(len(corroborated) / claim_count, 4) if claim_count else 0.0,
+            cross_media_balance=round(2 * min(news_count, social_count) / evidence_count, 4) if evidence_count else 0.0,
+            cross_source_corroboration=round(len(multi_source_claims) / claim_count, 4) if claim_count else 0.0,
             source_diversity=round(_normalized_entropy(sources), 4),
             source_redundancy=round(_mean(pairwise), 4),
             temporal_span_hours=round(_temporal_span_hours(documents), 2),
         )
+
+    def _claim_evidence_similarity(
+        self,
+        analysis: NarrativeAnalysis,
+        documents: dict[str, EvidenceDocument],
+        document_vectors: list[list[float] | dict[str, float]],
+        backend: str,
+    ) -> tuple[list[float], str]:
+        document_list = list(documents.values())
+        index_by_url = {document.url: index for index, document in enumerate(document_list)}
+        claims = [
+            (claim, [
+                index_by_url[url]
+                for url in claim.evidence_urls + claim.counter_evidence_urls
+                if url in index_by_url
+            ])
+            for claim in analysis.claims
+        ]
+        claims = [(claim, indexes) for claim, indexes in claims if indexes]
+        if not claims:
+            return [], "none"
+
+        if backend == "tfidf-fallback":
+            return [
+                max(
+                    _cosine(vectors[0], vectors[index + 1])
+                    for index in range(len(indexes))
+                )
+                for claim, indexes in claims
+                for vectors in [_tfidf_vectors([
+                    claim.claim,
+                    *[document_list[index].searchable_text() for index in indexes],
+                ])]
+            ], "tfidf-fallback"
+
+        try:
+            embedder = self.embedder or NVIDIAEmbeddings(
+                model=EMBEDDING_MODEL["MODEL_NAME"],
+                api_key=NVIDIA_API_KEY,
+            )
+            claim_vectors = embedder.embed_documents([claim.claim for claim, _ in claims])
+            return [
+                max(_cosine(claim_vectors[index], document_vectors[evidence_index]) for evidence_index in indexes)
+                for index, (_, indexes) in enumerate(claims)
+            ], EMBEDDING_MODEL["MODEL_NAME"]
+        except Exception:
+            return [
+                max(
+                    _cosine(vectors[0], vectors[index + 1])
+                    for index in range(len(indexes))
+                )
+                for claim, indexes in claims
+                for vectors in [_tfidf_vectors([
+                    claim.claim,
+                    *[document_list[index].searchable_text() for index in indexes],
+                ])]
+            ], "tfidf-fallback"
 
     def _semantic_similarity(
         self,
