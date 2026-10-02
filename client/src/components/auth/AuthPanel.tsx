@@ -82,9 +82,11 @@ const content = {
 export default function AuthPanel({
   mode,
   googleEnabled = false,
+  sessionExpired = false,
 }: {
   mode: "signin" | "signup";
   googleEnabled?: boolean;
+  sessionExpired?: boolean;
 }) {
   const copy = content[mode];
   const shared = content.shared;
@@ -153,6 +155,11 @@ export default function AuthPanel({
           <p className="auth-description mt-5 mb-8 text-sm leading-6 text-muted">
             {copy.description}
           </p>
+          {sessionExpired && (
+            <p className="mb-5 rounded-sm border border-border bg-surface-raised px-4 py-3 text-sm text-foreground" role="status">
+              Your session expired. Please sign in again to continue.
+            </p>
+          )}
           {googleEnabled && (
             <>
               <button

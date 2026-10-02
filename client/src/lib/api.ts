@@ -1,11 +1,13 @@
 import axios from "axios";
 import { HTTP_SERVER_BASE_URL } from "./config";
 import { getSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import { pushToast } from "./toasts";
 
 const httpClient = axios.create({
     baseURL: HTTP_SERVER_BASE_URL,
 });
+let signingOutAfterUnauthorized = false;
 
 httpClient.interceptors.request.use(async (config) => {
     if (typeof window === "undefined") {
@@ -38,6 +40,14 @@ httpClient.interceptors.response.use(
     (error: unknown) => {
         if (typeof window !== "undefined" && !axios.isCancel(error)) {
             const responseMessage = axios.isAxiosError(error) ? error.response?.data?.message : undefined;
+            if (axios.isAxiosError(error) && error.response?.status === 401) {
+                if (!signingOutAfterUnauthorized) {
+                    signingOutAfterUnauthorized = true;
+                    pushToast("error", "Your session expired. Please sign in again.");
+                    void signOut({ callbackUrl: "/auth/signin?reason=session-expired" });
+                }
+                return Promise.reject(error);
+            }
             const message = typeof responseMessage === "string"
                 ? responseMessage
                 : error instanceof Error ? error.message : "Request failed.";
