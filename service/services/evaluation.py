@@ -123,6 +123,8 @@ DETERMINISTIC METRICS (diagnostic only; verify them against the documents):
             "# Retrieved sources",
             "",
             f"> {reason} These are source leads, not a claim verdict.",
+            "",
+            *_evaluation_table(None),
         ]
         for heading, items in (("News coverage", news), ("Social coverage", social)):
             lines.extend(["", f"## {heading}"])
@@ -217,7 +219,8 @@ def _empty_result(sources: dict[str, Any]) -> dict[str, Any]:
         "response": (
             "# Narrative assessment\n\n"
             "There is insufficient evidence to evaluate this request. No usable news articles or "
-            "social posts were returned. Try a more specific topic or check the configured providers."
+            "social posts were returned. Try a more specific topic or check the configured providers.\n\n"
+            + "\n".join(_evaluation_table(None))
         ),
         "research": _summarize_sources(sources),
         "analysis": {
@@ -298,23 +301,7 @@ def _render_report(
         lines.extend(["", "## Unknowns", *[f"- {unknown}" for unknown in analysis.unknowns]])
 
     judge, metrics = evaluation.judge, evaluation.metrics
-    lines.extend([
-        "", "## Evaluation", f"- Composite quality: **{evaluation.quality_score:.0%}**",
-        f"- LLM judge: groundedness {judge.groundedness:.0%}, relevance {judge.answer_relevance:.0%}, "
-        f"completeness {judge.completeness:.0%}, source quality {judge.source_quality:.0%}, "
-        f"comparison quality {judge.comparison_quality:.0%}",
-        f"- Semantic query/source cosine: mean {metrics.query_source_cosine_mean:.3f}, "
-        f"max {metrics.query_source_cosine_max:.3f} ({metrics.embedding_backend})",
-        f"- Claim/evidence similarity: cosine {metrics.claim_evidence_cosine_mean:.3f}, "
-        f"Jaccard {metrics.claim_evidence_jaccard_mean:.3f}",
-        f"- Evidence coverage {metrics.evidence_coverage:.0%}; citation validity "
-        f"{metrics.citation_validity:.0%}; comparison citation validity "
-        f"{metrics.comparison_citation_validity:.0%}",
-        f"- Cross-media coverage {metrics.cross_media_coverage:.0%}; cross-source corroboration "
-        f"{metrics.cross_source_corroboration:.0%}",
-        f"- Source diversity {metrics.source_diversity:.3f}; redundancy "
-        f"{metrics.source_redundancy:.3f}; temporal span {metrics.temporal_span_hours:.1f} hours",
-    ])
+    lines.extend(["", *_evaluation_table(evaluation)])
     if evaluation.quality_score < 0.6:
         lines.extend(["", "> Low-confidence evaluation: verify the highlighted claims against primary sources."])
     if judge.unsupported_claims:
@@ -348,3 +335,63 @@ def _render_report(
 
 def _markdown_text(value: str) -> str:
     return value.replace("\\", "\\\\").replace("[", "\\[").replace("]", "\\]")
+
+
+def _evaluation_table(evaluation: EvaluationResult | None) -> list[str]:
+    lines = [
+        "## Evaluation",
+        "",
+        "| Measure | Score | Meaning |",
+        "|---|---:|---|",
+    ]
+    judge = evaluation.judge if evaluation else None
+    metrics = evaluation.metrics if evaluation else None
+    quality_rows = (
+        ("Weighted quality score", evaluation.quality_score if evaluation else None, "Internal composite; not benchmark accuracy."),
+        ("Groundedness · LLM judge", judge.groundedness if judge else None, "Findings supported by retrieved sources."),
+        ("Answer relevance · LLM judge", judge.answer_relevance if judge else None, "Response addresses the request."),
+        ("Completeness · LLM judge", judge.completeness if judge else None, "Requested comparison points are covered."),
+        ("Source quality · LLM judge", judge.source_quality if judge else None, "Usefulness and reliability of the sources."),
+        ("Comparison quality · LLM judge", judge.comparison_quality if judge else None, "News and social positions are represented accurately."),
+        ("Claim citation validity · exact URL check", metrics.citation_validity if metrics else None, "Share of claim citations matching retrieved URLs."),
+        ("Comparison citation validity · exact URL check", metrics.comparison_citation_validity if metrics else None, "Share of comparisons citing valid news and social URLs."),
+        ("Claim evidence coverage · deterministic", metrics.evidence_coverage if metrics else None, "Share of claims with at least one valid evidence citation."),
+        ("Cross-media coverage · deterministic", metrics.cross_media_coverage if metrics else None, "Evaluated evidence contains news and social posts."),
+        ("Cross-media balance · deterministic", metrics.cross_media_balance if metrics else None, "2 × smaller source count ÷ total evaluated sources."),
+    )
+    for measure, score, meaning in quality_rows:
+        if score is None:
+            formatted = "—"
+        else:
+            formatted = f"{score:.1%}"
+        lines.append(f"| {measure} | {formatted} | {meaning} |")
+    if evaluation is None:
+        lines.extend(["", "Scores unavailable because the evidence evaluation did not complete."])
+        return lines
+
+    lines.extend([
+        "",
+        "LLM scores are estimates. No per-request answer accuracy or retrieval recall is reported because no gold answer or reference set is available.",
+        "",
+        "## Evidence diagnostics",
+        "",
+        "| Diagnostic | Value | Interpretation |",
+        "|---|---:|---|",
+    ])
+    diagnostics = (
+        ("Query/evidence cosine", metrics.query_source_cosine_mean, f"Mean query/document vector similarity ({metrics.embedding_backend}); not truth or entailment."),
+        ("News/query cosine", metrics.news_query_cosine_mean, "Mean request/news vector similarity."),
+        ("Social/query cosine", metrics.social_query_cosine_mean, "Mean request/social vector similarity."),
+        ("Claim/evidence cosine", metrics.claim_evidence_cosine_mean, f"Mean best cited-document vector similarity ({metrics.claim_evidence_backend}); not truth or entailment."),
+        ("Multi-source citation rate", metrics.cross_source_corroboration, "Claims citing two source labels; does not prove source independence."),
+        ("Source diversity", metrics.source_diversity, "Normalized entropy across source labels."),
+        ("Document redundancy", metrics.source_redundancy, "Mean pairwise document-vector similarity; high means more similar documents."),
+        ("Temporal span", metrics.temporal_span_hours, "Hours between oldest and newest evaluated sources."),
+    )
+    for name, value, meaning in diagnostics:
+        formatted = f"{value:.1f} h" if name == "Temporal span" else f"{value:.3f}"
+        if name == "Multi-source citation rate":
+            formatted = f"{value:.1%}"
+        lines.append(f"| {name} | {formatted} | {meaning} |")
+    lines.append("\nCosine similarity is a relevance diagnostic, not proof that a claim is true or supported.")
+    return lines
