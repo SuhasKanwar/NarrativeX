@@ -1,9 +1,14 @@
 """Build an inspectable citation graph from evaluated evidence, without another model call."""
 
 from schemas.evaluation import EvidenceDocument, NarrativeAnalysis
+from collections import Counter
+from datetime import datetime, timezone
+import hashlib
+import json
 
 
 def build_evidence_graph(analysis: NarrativeAnalysis, documents: list[EvidenceDocument]) -> dict:
+    documents = list({document.url: document for document in documents}.values())
     sources = {document.url: f"source:{index}" for index, document in enumerate(documents)}
     nodes = [{
         "id": sources[document.url], "kind": document.source_type,
@@ -14,9 +19,11 @@ def build_evidence_graph(analysis: NarrativeAnalysis, documents: list[EvidenceDo
     edges = []
     gaps = []
     claim_ids = {}
+    counts = Counter(claim.id for claim in analysis.claims)
     for index, claim in enumerate(analysis.claims):
         node_id = f"claim:{index}"
-        claim_ids.setdefault(claim.id, node_id)
+        if counts[claim.id] == 1:
+            claim_ids[claim.id] = node_id
         nodes.append({"id": node_id, "kind": "claim", "label": claim.claim,
                       "detail": claim.rationale, "status": claim.status})
         citations = (("cites", claim.evidence_urls), ("counter_cites", claim.counter_evidence_urls))
@@ -51,20 +58,49 @@ def build_evidence_graph(analysis: NarrativeAnalysis, documents: list[EvidenceDo
         target = claim_ids.get(relationship.target_claim_id)
         if source and target and source != target:
             edge = {"source": source, "target": target, "relation": relationship.relationship,
-                    "detail": relationship.rationale}
+                    "detail": relationship.rationale + "".join(
+                        f"\nExact excerpt ({p.url}): {p.quote}" for p in relationship.passages)}
             if edge not in edges:
                 edges.append(edge)
                 if relationship.relationship == "contradicts":
                     gaps.append({"node": source, "reason": "Potential conflict between claims",
                                  "action": "Check the linked claim, dates, and scope against primary evidence before resolving this model-inferred conflict."})
 
-    return {"version": 1, "nodes": nodes, "edges": edges, "gaps": gaps}
+    findings = {f"claim:{i}": item for i, item in enumerate(analysis.claims)}
+    findings.update({f"comparison:{i}": item for i, item in enumerate(analysis.comparisons)})
+    for node in nodes:
+        if node["id"] in findings:
+            item = findings[node["id"]]
+            node["passages"] = [p.model_dump() for p in item.passages]
+            if not item.passages:
+                gaps.append({"node": node["id"], "reason": "No exact evidence excerpts",
+                             "action": "Retrieve passages before accepting this finding."})
+    for edge in edges:
+        item = findings.get(edge["source"])
+        if edge["target"].startswith("source:") and item:
+            edge["verification"] = "quotation_present" if any(
+                sources.get(p.url) == edge["target"] for p in item.passages) else "citation_only"
+        else:
+            edge["verification"] = "model_inferred"
+    snapshot = [doc.model_dump() for doc in documents]
+    return {"version": 1, "nodes": nodes, "edges": edges, "gaps": gaps,
+            "provenance": {"generatedAt": datetime.now(timezone.utc).isoformat(),
+                "evidenceSha256": hashlib.sha256(json.dumps(snapshot, sort_keys=True).encode()).hexdigest(),
+                "documents": snapshot}}
 
 
 def graph_report(graph: dict) -> list[str]:
     lines = ["", "## Verification priorities", "",
              "These are gaps in the retrieved sample, not conclusions about the wider evidence."]
     labels = {node["id"]: node["label"] for node in graph["nodes"]}
+    lines.extend(["", "## Evidence ledger", "",
+                  "Exact excerpt checks establish attribution only. Stance and conclusions are model interpretations.", "",
+                  "| Finding | Source | Exact excerpt | Model stance |", "| --- | --- | --- | --- |"])
+    def cell(value):
+        return str(value).replace("|", "&#124;").replace("\n", " ").replace("<", "&lt;")
+    for node in graph["nodes"]:
+        for passage in node.get("passages", []):
+            lines.append(f"| {cell(node['label'])} | {cell(passage['url'])} | {cell(passage['quote'])} | {passage['stance']} |")
     for gap in graph["gaps"]:
         label = labels[gap["node"]].replace("\n", " ")
         lines.append(f"- {label}: {gap['reason']}. {gap['action']}")

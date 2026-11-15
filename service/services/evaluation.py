@@ -7,6 +7,7 @@ from models.nemotron import Nemotron
 from schemas.evaluation import EvaluationResult, EvidenceDocument, JudgeAssessment, NarrativeAnalysis
 from services.metrics import MetricsEvaluator, rank_documents
 from services.evidence_graph import build_evidence_graph, graph_report
+from services.evidence_validation import validate_evidence
 
 
 MAX_EVIDENCE_ITEMS = 8
@@ -27,7 +28,7 @@ class EvaluationService:
                 "A defensible comparison requires at least one usable news article and one social post.",
             )
 
-        analysis = self._analyze(query, documents)
+        analysis = validate_evidence(self._analyze(query, documents), documents)
         metrics = self.metrics.evaluate(query, documents, analysis)
         judge = self._judge(query, documents, analysis, metrics.model_dump())
         quality_score = round(
@@ -45,7 +46,7 @@ class EvaluationService:
         research = _summarize_sources(sources)
         return {
             "reasoning": "",
-            "response": _render_report(analysis, evaluation, documents, research),
+            "response": _render_report(analysis, evaluation, documents, research, query),
             "research": research,
             "analysis": analysis.model_dump(),
             "evaluation": evaluation.model_dump(),
@@ -76,6 +77,13 @@ news_urls and one exact social URL in social_urls. Distinguish factual agreement
 engagement and repetition are not evidence of truth. If the sources cannot support a comparison,
 record insufficient_evidence and explain why. Do not invent facts, citations, quotations, dates,
 identities, causal links, or cross-source agreement.
+
+For EVERY claim, comparison, and relationship, populate passages with exact contiguous quotations
+from the supplied title/text, their exact URL, and stance (supports, contradicts, context).
+Comparisons require quotations from BOTH news and social. Relationships require passages that
+explain the connection; distinguish date changes, scope differences, negation, and framing.
+Do not infer actual propagation from publication order or political identity from a person's posts.
+Use insufficient_evidence whenever the excerpts cannot justify the conclusion.
 """.strip(),
             NarrativeAnalysis,
         )
@@ -242,17 +250,24 @@ def _render_report(
     evaluation: EvaluationResult,
     documents: list[EvidenceDocument],
     research: dict[str, Any],
+    query: str = "",
 ) -> str:
     known_urls = {document.url for document in documents}
     news_urls = {document.url for document in documents if document.source_type == "news"}
     social_urls = {document.url for document in documents if document.source_type == "social"}
-    lines = ["# Narrative assessment", "", analysis.summary, "", "## News vs social"]
+    lines = ["# Narrative assessment", "", analysis.summary, "",
+             "Findings and confidence are model assessments of the retrieved sample. Exact quotation checks verify attribution; factual support requires review.",
+             "", "## News vs social"]
+    def cell(value):
+        return str(value).replace("|", "&#124;").replace("\n", " ").replace("<", "&lt;")
+    lines.extend(["", "| Topic | News position | Social position | Relationship |", "| --- | --- | --- | --- |"])
+    for comparison in analysis.comparisons:
+        lines.append("| " + " | ".join(cell(value) for value in (
+            comparison.topic, comparison.news_position, comparison.social_position, comparison.relationship)) + " |")
     rendered_comparisons = 0
     for comparison in analysis.comparisons:
         news_evidence = [url for url in comparison.news_urls if url in news_urls]
         social_evidence = [url for url in comparison.social_urls if url in social_urls]
-        if not news_evidence or not social_evidence:
-            continue
         rendered_comparisons += 1
         lines.extend([
             "",
@@ -332,6 +347,8 @@ def _render_report(
             date = f" · {document.published_at}" if document.published_at else ""
             lines.append(f"- [{label}](<{document.url}>) — {source}{date}")
     graph = build_evidence_graph(analysis, documents)
+    graph["provenance"].update({"query": query, "evaluationModel": NEMOTRON["MODEL_NAME"],
+                                "evaluation": evaluation.model_dump(), "analysis": analysis.model_dump()})
     lines.extend(graph_report(graph))
     # Keep the artifact with the saved brief so existing conversation storage preserves it.
     lines.extend(["", "```narrativex-graph", json.dumps(graph, ensure_ascii=False), "```"])

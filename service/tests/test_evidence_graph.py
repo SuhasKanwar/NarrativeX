@@ -21,7 +21,7 @@ class EvidenceGraphTest(unittest.TestCase):
         self.assertEqual(len(graph["edges"]), 2)
         ids = {node["id"] for node in graph["nodes"]}
         self.assertTrue(all(edge["source"] in ids and edge["target"] in ids for edge in graph["edges"]))
-        self.assertEqual(len(graph["gaps"]), 3)
+        self.assertEqual(len(graph["gaps"]), 5)
         self.assertIn("No counter-evidence", "\n".join(graph_report(graph)))
         self.assertEqual(graph["nodes"][0]["url"], documents[0].url)
 

@@ -40,6 +40,12 @@ class EvidenceDocument(BaseModel):
         return " ".join(part for part in (self.title, self.text) if part).strip()[:1000]
 
 
+class EvidencePassage(BaseModel):
+    url: str
+    quote: str = Field(min_length=1, description="Exact contiguous excerpt copied from a supplied document")
+    stance: Literal["supports", "contradicts", "context"]
+
+
 class ClaimAssessment(BaseModel):
     id: str = Field(description="Stable short identifier such as C1")
     claim: str
@@ -48,6 +54,7 @@ class ClaimAssessment(BaseModel):
     evidence_urls: list[str] = Field(default_factory=list)
     counter_evidence_urls: list[str] = Field(default_factory=list)
     rationale: str
+    passages: list[EvidencePassage] = Field(default_factory=list)
 
 
 class ClaimRelationship(BaseModel):
@@ -56,6 +63,7 @@ class ClaimRelationship(BaseModel):
     relationship: RelationshipType
     confidence: float = Field(ge=0, le=1)
     rationale: str
+    passages: list[EvidencePassage] = Field(default_factory=list)
 
 
 class CoverageComparison(BaseModel):
@@ -67,6 +75,7 @@ class CoverageComparison(BaseModel):
     social_urls: list[str] = Field(min_length=1)
     confidence: float = Field(ge=0, le=1)
     rationale: str
+    passages: list[EvidencePassage] = Field(default_factory=list)
 
 
 class NarrativeAnalysis(BaseModel):
