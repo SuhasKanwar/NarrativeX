@@ -1,0 +1,628 @@
+{
+  "protocol": "synthetic-cross-media-v1",
+  "model": "nvidia/nemotron-3-ultra-550b-a55b",
+  "generatedAt": "2026-11-15T19:58:33.025025+00:00",
+  "limits": "Five synthetic cases; first comparison scored. Not a real-world benchmark or end-to-end retrieval test.",
+  "scores": {
+    "count": 5,
+    "perLabel": {
+      "agree": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "disagree": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "insufficient_evidence": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      }
+    },
+    "macroF1": 1.0
+  },
+  "cases": [
+    {
+      "id": "agreement",
+      "expected": "agree",
+      "predicted": "agree",
+      "documents": [
+        {
+          "url": "https://news.example/agreement",
+          "source_type": "news",
+          "source": "news",
+          "title": "",
+          "text": "The city council approved the policy on Monday.",
+          "published_at": ""
+        },
+        {
+          "url": "https://social.example/agreement",
+          "source_type": "social",
+          "source": "social",
+          "title": "",
+          "text": "The city council approved the policy on Monday.",
+          "published_at": ""
+        }
+      ],
+      "analysis": {
+        "summary": "Both the news report and the social-media post state the same proposition: the city council approved the policy on Monday. They show full textual agreement on the core claim. No counter-evidence, negation, or scope differences appear in the provided excerpts. The only unknown is the calendar date corresponding to 'Monday'.",
+        "comparisons": [
+          {
+            "topic": "City council policy approval",
+            "relationship": "agree",
+            "news_position": "The city council approved the policy on Monday.",
+            "social_position": "The city council approved the policy on Monday.",
+            "news_urls": [
+              "https://news.example/agreement"
+            ],
+            "social_urls": [
+              "https://social.example/agreement"
+            ],
+            "confidence": 1.0,
+            "rationale": "Both sources contain identical wording asserting the city council approved the policy on Monday. The excerpts match verbatim, indicating full agreement on the reported event.",
+            "passages": [
+              {
+                "url": "https://news.example/agreement",
+                "quote": "The city council approved the policy on Monday.",
+                "stance": "supports"
+              },
+              {
+                "url": "https://social.example/agreement",
+                "quote": "The city council approved the policy on Monday.",
+                "stance": "supports"
+              }
+            ]
+          }
+        ],
+        "claims": [
+          {
+            "id": "C1",
+            "claim": "The city council approved the policy on Monday.",
+            "status": "supported",
+            "confidence": 1.0,
+            "evidence_urls": [
+              "https://news.example/agreement",
+              "https://social.example/agreement"
+            ],
+            "counter_evidence_urls": [],
+            "rationale": "Both supplied documents contain the exact same sentence asserting this claim. No contradicting evidence is present.",
+            "passages": [
+              {
+                "url": "https://news.example/agreement",
+                "quote": "The city council approved the policy on Monday.",
+                "stance": "supports"
+              },
+              {
+                "url": "https://social.example/agreement",
+                "quote": "The city council approved the policy on Monday.",
+                "stance": "supports"
+              }
+            ]
+          }
+        ],
+        "relationships": [],
+        "entities": [
+          "city council",
+          "policy",
+          "Monday"
+        ],
+        "propagation_signals": [
+          "identical wording across news and social sources"
+        ],
+        "unknowns": [
+          "Which calendar date 'Monday' refers to",
+          "Whether the approval actually occurred outside the provided texts",
+          "Specific policy details"
+        ]
+      }
+    },
+    {
+      "id": "negation",
+      "expected": "disagree",
+      "predicted": "disagree",
+      "documents": [
+        {
+          "url": "https://news.example/negation",
+          "source_type": "news",
+          "source": "news",
+          "title": "",
+          "text": "The city council approved the policy on Monday.",
+          "published_at": ""
+        },
+        {
+          "url": "https://social.example/negation",
+          "source_type": "social",
+          "source": "social",
+          "title": "",
+          "text": "The city council did not approve the policy on Monday.",
+          "published_at": ""
+        }
+      ],
+      "analysis": {
+        "summary": "The two sources make directly contradictory claims about the same event. The news report states the city council approved the policy on Monday, while the social-media post states the city council did not approve the policy on Monday. Both refer to the same entity (the city council), the same action (approve the policy), and the same time reference (Monday), differing only by negation. Because no additional evidence is provided, the truth of either assertion cannot be determined from the supplied material alone.",
+        "comparisons": [
+          {
+            "topic": "City council approval of the policy on Monday",
+            "relationship": "disagree",
+            "news_position": "The city council approved the policy on Monday.",
+            "social_position": "The city council did not approve the policy on Monday.",
+            "news_urls": [
+              "https://news.example/negation"
+            ],
+            "social_urls": [
+              "https://social.example/negation"
+            ],
+            "confidence": 1.0,
+            "rationale": "The two texts assert the identical proposition with opposite polarity. The news text affirms approval; the social text denies it. No other context, dates, or scope differences are present in the supplied excerpts, so the disagreement is direct and complete.",
+            "passages": [
+              {
+                "url": "https://news.example/negation",
+                "quote": "The city council approved the policy on Monday.",
+                "stance": "supports"
+              },
+              {
+                "url": "https://social.example/negation",
+                "quote": "The city council did not approve the policy on Monday.",
+                "stance": "supports"
+              }
+            ]
+          }
+        ],
+        "claims": [
+          {
+            "id": "C1",
+            "claim": "The city council approved the policy on Monday.",
+            "status": "insufficient_evidence",
+            "confidence": 0.5,
+            "evidence_urls": [
+              "https://news.example/negation"
+            ],
+            "counter_evidence_urls": [
+              "https://social.example/negation"
+            ],
+            "rationale": "Only the news source asserts this claim; the social source directly contradicts it. No independent corroboration is present in the provided documents.",
+            "passages": [
+              {
+                "url": "https://news.example/negation",
+                "quote": "The city council approved the policy on Monday.",
+                "stance": "supports"
+              },
+              {
+                "url": "https://social.example/negation",
+                "quote": "The city council did not approve the policy on Monday.",
+                "stance": "contradicts"
+              }
+            ]
+          },
+          {
+            "id": "C2",
+            "claim": "The city council did not approve the policy on Monday.",
+            "status": "insufficient_evidence",
+            "confidence": 0.5,
+            "evidence_urls": [
+              "https://social.example/negation"
+            ],
+            "counter_evidence_urls": [
+              "https://news.example/negation"
+            ],
+            "rationale": "Only the social source asserts this claim; the news source directly contradicts it. No independent corroboration is present in the provided documents.",
+            "passages": [
+              {
+                "url": "https://social.example/negation",
+                "quote": "The city council did not approve the policy on Monday.",
+                "stance": "supports"
+              },
+              {
+                "url": "https://news.example/negation",
+                "quote": "The city council approved the policy on Monday.",
+                "stance": "contradicts"
+              }
+            ]
+          }
+        ],
+        "relationships": [
+          {
+            "source_claim_id": "C1",
+            "target_claim_id": "C2",
+            "relationship": "contradicts",
+            "confidence": 1.0,
+            "rationale": "C1 and C2 are logical negations of each other concerning the same event, entity, and time reference.",
+            "passages": [
+              {
+                "url": "https://news.example/negation",
+                "quote": "The city council approved the policy on Monday.",
+                "stance": "supports"
+              },
+              {
+                "url": "https://social.example/negation",
+                "quote": "The city council did not approve the policy on Monday.",
+                "stance": "supports"
+              }
+            ]
+          }
+        ],
+        "entities": [
+          "city council",
+          "policy",
+          "Monday"
+        ],
+        "propagation_signals": [],
+        "unknowns": [
+          "Which source, if either, is accurate.",
+          "Whether the policy was voted on but failed, was postponed, or never brought to a vote.",
+          "The specific date of the Monday referenced.",
+          "The jurisdiction or level of government of the city council."
+        ]
+      }
+    },
+    {
+      "id": "numbers",
+      "expected": "disagree",
+      "predicted": "disagree",
+      "documents": [
+        {
+          "url": "https://news.example/numbers",
+          "source_type": "news",
+          "source": "news",
+          "title": "",
+          "text": "The final official vote count was 12 in favor and 3 against.",
+          "published_at": ""
+        },
+        {
+          "url": "https://social.example/numbers",
+          "source_type": "social",
+          "source": "social",
+          "title": "",
+          "text": "The final official vote count was 3 in favor and 12 against.",
+          "published_at": ""
+        }
+      ],
+      "analysis": {
+        "summary": "The news and social sources make directly contradictory claims about the same vote count. News states 12 in favor and 3 against; social states 3 in favor and 12 against. Both refer to the 'final official vote count' without dates or additional context, so the disagreement is on the exact numbers and their assignment.",
+        "comparisons": [
+          {
+            "topic": "Final official vote count",
+            "relationship": "disagree",
+            "news_position": "12 in favor, 3 against",
+            "social_position": "3 in favor, 12 against",
+            "news_urls": [
+              "https://news.example/numbers"
+            ],
+            "social_urls": [
+              "https://social.example/numbers"
+            ],
+            "confidence": 1.0,
+            "rationale": "Both sources refer to the 'final official vote count' but assign opposite numbers to favor and against. The contradiction is explicit and unambiguous.",
+            "passages": [
+              {
+                "url": "https://news.example/numbers",
+                "quote": "The final official vote count was 12 in favor and 3 against.",
+                "stance": "supports"
+              },
+              {
+                "url": "https://social.example/numbers",
+                "quote": "The final official vote count was 3 in favor and 12 against.",
+                "stance": "supports"
+              }
+            ]
+          }
+        ],
+        "claims": [
+          {
+            "id": "C1",
+            "claim": "The final official vote count was 12 in favor and 3 against.",
+            "status": "insufficient_evidence",
+            "confidence": 0.5,
+            "evidence_urls": [
+              "https://news.example/numbers"
+            ],
+            "counter_evidence_urls": [
+              "https://social.example/numbers"
+            ],
+            "rationale": "News source states this exact count. Social source directly contradicts it with reversed numbers. No external verification is available from the supplied documents.",
+            "passages": [
+              {
+                "url": "https://news.example/numbers",
+                "quote": "The final official vote count was 12 in favor and 3 against.",
+                "stance": "supports"
+              },
+              {
+                "url": "https://social.example/numbers",
+                "quote": "The final official vote count was 3 in favor and 12 against.",
+                "stance": "contradicts"
+              }
+            ]
+          },
+          {
+            "id": "C2",
+            "claim": "The final official vote count was 3 in favor and 12 against.",
+            "status": "insufficient_evidence",
+            "confidence": 0.5,
+            "evidence_urls": [
+              "https://social.example/numbers"
+            ],
+            "counter_evidence_urls": [
+              "https://news.example/numbers"
+            ],
+            "rationale": "Social source states this exact count. News source directly contradicts it with reversed numbers. No external verification is available from the supplied documents.",
+            "passages": [
+              {
+                "url": "https://social.example/numbers",
+                "quote": "The final official vote count was 3 in favor and 12 against.",
+                "stance": "supports"
+              },
+              {
+                "url": "https://news.example/numbers",
+                "quote": "The final official vote count was 12 in favor and 3 against.",
+                "stance": "contradicts"
+              }
+            ]
+          }
+        ],
+        "relationships": [
+          {
+            "source_claim_id": "C1",
+            "target_claim_id": "C2",
+            "relationship": "contradicts",
+            "confidence": 1.0,
+            "rationale": "The two claims assign opposite numbers to the same categories (in favor vs against) for the same event described as the 'final official vote count'.",
+            "passages": [
+              {
+                "url": "https://news.example/numbers",
+                "quote": "The final official vote count was 12 in favor and 3 against.",
+                "stance": "supports"
+              },
+              {
+                "url": "https://social.example/numbers",
+                "quote": "The final official vote count was 3 in favor and 12 against.",
+                "stance": "supports"
+              }
+            ]
+          }
+        ],
+        "entities": [],
+        "propagation_signals": [],
+        "unknowns": [
+          "Which count is accurate; no official source or date is provided in either document.",
+          "Whether both sources refer to the same vote or different votes with similar phrasing.",
+          "The date of the vote and the publishing dates of both sources."
+        ]
+      }
+    },
+    {
+      "id": "scope",
+      "expected": "disagree",
+      "predicted": "disagree",
+      "documents": [
+        {
+          "url": "https://news.example/scope",
+          "source_type": "news",
+          "source": "news",
+          "title": "",
+          "text": "The rule applies only to public schools; private schools are exempt.",
+          "published_at": ""
+        },
+        {
+          "url": "https://social.example/scope",
+          "source_type": "social",
+          "source": "social",
+          "title": "",
+          "text": "The rule applies to all private schools; public schools are exempt.",
+          "published_at": ""
+        }
+      ],
+      "analysis": {
+        "summary": "The news and social sources make directly contradictory claims about which school types the rule applies to. The news states the rule applies only to public schools with private schools exempt, while the social post claims the rule applies to all private schools with public schools exempt. Both sources address the same proposition (scope of rule application) but assert opposite scopes. No dates are provided in either source.",
+        "comparisons": [
+          {
+            "topic": "Rule application scope for public vs private schools",
+            "relationship": "disagree",
+            "news_position": "Rule applies only to public schools; private schools are exempt",
+            "social_position": "Rule applies to all private schools; public schools are exempt",
+            "news_urls": [
+              "https://news.example/scope"
+            ],
+            "social_urls": [
+              "https://social.example/scope"
+            ],
+            "confidence": 1.0,
+            "rationale": "The two sources make directly contradictory claims about the same rule's scope. The news explicitly limits application to public schools while exempting private schools. The social post asserts the exact opposite scope. Both address the identical proposition (which school types the rule covers) with mutually exclusive assertions. No dates provided to assess temporal ordering.",
+            "passages": [
+              {
+                "url": "https://news.example/scope",
+                "quote": "The rule applies only to public schools; private schools are exempt.",
+                "stance": "supports"
+              },
+              {
+                "url": "https://social.example/scope",
+                "quote": "The rule applies to all private schools; public schools are exempt.",
+                "stance": "supports"
+              }
+            ]
+          }
+        ],
+        "claims": [
+          {
+            "id": "C1",
+            "claim": "The rule applies only to public schools; private schools are exempt",
+            "status": "supported",
+            "confidence": 1.0,
+            "evidence_urls": [
+              "https://news.example/scope"
+            ],
+            "counter_evidence_urls": [],
+            "rationale": "Directly supported by the news source text. The social source provides direct counter-evidence by asserting the opposite scope.",
+            "passages": [
+              {
+                "url": "https://news.example/scope",
+                "quote": "The rule applies only to public schools; private schools are exempt.",
+                "stance": "supports"
+              }
+            ]
+          },
+          {
+            "id": "C2",
+            "claim": "The rule applies to all private schools; public schools are exempt",
+            "status": "supported",
+            "confidence": 1.0,
+            "evidence_urls": [
+              "https://social.example/scope"
+            ],
+            "counter_evidence_urls": [],
+            "rationale": "Directly supported by the social source text. The news source provides direct counter-evidence by asserting the opposite scope.",
+            "passages": [
+              {
+                "url": "https://social.example/scope",
+                "quote": "The rule applies to all private schools; public schools are exempt.",
+                "stance": "supports"
+              }
+            ]
+          }
+        ],
+        "relationships": [
+          {
+            "source_claim_id": "C1",
+            "target_claim_id": "C2",
+            "relationship": "contradicts",
+            "confidence": 1.0,
+            "rationale": "The two claims assert mutually exclusive scopes for the same rule. C1 states public-only with private exempt; C2 states private-only with public exempt. They cannot both be true simultaneously. No temporal or framing difference explains this \u2014 they are direct logical negations of each other.",
+            "passages": [
+              {
+                "url": "https://news.example/scope",
+                "quote": "The rule applies only to public schools; private schools are exempt.",
+                "stance": "supports"
+              },
+              {
+                "url": "https://social.example/scope",
+                "quote": "The rule applies to all private schools; public schools are exempt.",
+                "stance": "supports"
+              }
+            ]
+          }
+        ],
+        "entities": [
+          "rule",
+          "public schools",
+          "private schools"
+        ],
+        "propagation_signals": [],
+        "unknowns": [
+          "Which rule is being referenced (no title, jurisdiction, or identifier provided)",
+          "Publication dates for either source (both published_at fields are empty)",
+          "Whether one source is correcting the other or they represent independent conflicting reports",
+          "No authoritative source or official text of the rule is cited by either document"
+        ]
+      }
+    },
+    {
+      "id": "unrelated",
+      "expected": "insufficient_evidence",
+      "predicted": "insufficient_evidence",
+      "documents": [
+        {
+          "url": "https://news.example/unrelated",
+          "source_type": "news",
+          "source": "news",
+          "title": "",
+          "text": "The council approved a transit budget.",
+          "published_at": ""
+        },
+        {
+          "url": "https://social.example/unrelated",
+          "source_type": "social",
+          "source": "social",
+          "title": "",
+          "text": "A telescope detected a distant galaxy.",
+          "published_at": ""
+        }
+      ],
+      "analysis": {
+        "summary": "The two provided documents cover entirely unrelated topics: a local council transit budget and an astronomical discovery. There is no shared proposition, entity, or event between them, so no meaningful comparison of coverage agreement, disagreement, or framing can be made.",
+        "comparisons": [
+          {
+            "topic": "unrelated topics",
+            "relationship": "insufficient_evidence",
+            "news_position": "Reports that a council approved a transit budget.",
+            "social_position": "Reports that a telescope detected a distant galaxy.",
+            "news_urls": [
+              "https://news.example/unrelated"
+            ],
+            "social_urls": [
+              "https://social.example/unrelated"
+            ],
+            "confidence": 1.0,
+            "rationale": "The news document discusses a municipal budget decision, while the social document discusses an astronomical observation. They contain no overlapping subjects, claims, entities, or events. Therefore, they cannot be compared for agreement, disagreement, or differing emphasis on any shared proposition.",
+            "passages": [
+              {
+                "url": "https://news.example/unrelated",
+                "quote": "The council approved a transit budget.",
+                "stance": "context"
+              },
+              {
+                "url": "https://social.example/unrelated",
+                "quote": "A telescope detected a distant galaxy.",
+                "stance": "context"
+              }
+            ]
+          }
+        ],
+        "claims": [
+          {
+            "id": "C1",
+            "claim": "The council approved a transit budget.",
+            "status": "supported",
+            "confidence": 1.0,
+            "evidence_urls": [
+              "https://news.example/unrelated"
+            ],
+            "counter_evidence_urls": [],
+            "rationale": "The claim is directly stated in the news source text.",
+            "passages": [
+              {
+                "url": "https://news.example/unrelated",
+                "quote": "The council approved a transit budget.",
+                "stance": "supports"
+              }
+            ]
+          },
+          {
+            "id": "C2",
+            "claim": "A telescope detected a distant galaxy.",
+            "status": "supported",
+            "confidence": 1.0,
+            "evidence_urls": [
+              "https://social.example/unrelated"
+            ],
+            "counter_evidence_urls": [],
+            "rationale": "The claim is directly stated in the social source text.",
+            "passages": [
+              {
+                "url": "https://social.example/unrelated",
+                "quote": "A telescope detected a distant galaxy.",
+                "stance": "supports"
+              }
+            ]
+          }
+        ],
+        "relationships": [],
+        "entities": [
+          "council",
+          "transit budget",
+          "telescope",
+          "distant galaxy"
+        ],
+        "propagation_signals": [],
+        "unknowns": [
+          "Which council approved the transit budget?",
+          "When was the transit budget approved?",
+          "What telescope detected the galaxy?",
+          "Which galaxy was detected?",
+          "When was the detection made?"
+        ]
+      }
+    }
+  ]
+}

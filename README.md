@@ -109,7 +109,7 @@ Model IDs are kept in [`service/config/models.py`](service/config/models.py), no
 | Role | Model | Use |
 | --- | --- | --- |
 | Research search planner | `nvidia/nemotron-3-ultra-550b-a55b` | Chooses the aligned topic and bounded parameters for the paired tools |
-| Evidence analyzer and judge | `nvidia/nemotron-3-super-120b-a12b` | Produces structured findings, then scores groundedness, relevance, completeness, source quality, and comparison quality |
+| Evidence analyzer and judge | `nvidia/nemotron-3-ultra-550b-a55b` | Produces structured findings, then scores groundedness, relevance, completeness, source quality, and comparison quality |
 | Embeddings | `nvidia/nemotron-3-embed-1b` | Measures query/source and claim/evidence cosine similarity |
 | General conversation | `openai/gpt-oss-120b` through Groq | Answers requests routed as general conversation without retrieval |
 
