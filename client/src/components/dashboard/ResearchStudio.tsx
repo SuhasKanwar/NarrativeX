@@ -462,6 +462,15 @@ export default function ResearchStudio({
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
+              if (e.nativeEvent.isComposing) return;
+              if (e.key === "Enter" && e.ctrlKey) {
+                e.preventDefault();
+                const { selectionStart, selectionEnd } = e.currentTarget;
+                if (draft.length - (selectionEnd - selectionStart) >= 2000) return;
+                setDraft(draft.slice(0, selectionStart) + "\n" + draft.slice(selectionEnd));
+                requestAnimationFrame(() => input.current?.setSelectionRange(selectionStart + 1, selectionStart + 1));
+                return;
+              }
               if (
                 e.key === "Enter" &&
                 !e.ctrlKey &&
