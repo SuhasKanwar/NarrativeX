@@ -1,0 +1,7 @@
+[
+  {"id":"agreement", "news":"The city council approved the policy on Monday.", "social":"The city council approved the policy on Monday.", "expected":"agree"},
+  {"id":"negation", "news":"The city council approved the policy on Monday.", "social":"The city council did not approve the policy on Monday.", "expected":"disagree"},
+  {"id":"numbers", "news":"The final official vote count was 12 in favor and 3 against.", "social":"The final official vote count was 3 in favor and 12 against.", "expected":"disagree"},
+  {"id":"scope", "news":"The rule applies only to public schools; private schools are exempt.", "social":"The rule applies to all private schools; public schools are exempt.", "expected":"disagree"},
+  {"id":"unrelated", "news":"The council approved a transit budget.", "social":"A telescope detected a distant galaxy.", "expected":"insufficient_evidence"}
+]

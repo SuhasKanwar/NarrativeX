@@ -81,6 +81,14 @@ The research tool boundary uses fixed server functions and validated parameters;
 
 ## Research workspace: evidence graphs and verification priorities
 
+New research runs require exact, contiguous evidence excerpts for claims, comparisons, and claim relationships. The evaluator checks each quotation against the retrieved title/text and rejects absent quotations. Claims with missing required support or counter-evidence are marked insufficient; comparisons missing news or social excerpts are also marked insufficient. A quotation can be present while its interpretation is wrong: the stance and semantic relationship remain model assessments requiring review.
+
+The workspace inspector displays excerpts and distinguishes quotation-present citation edges, citation-only edges, and inferred claim relationships. The report includes a news/social comparison matrix and evidence ledger; these readable sections also reach PDF exports. Graph JSON exports retain the selected source snapshot, generation timestamp, query, evaluation model, analysis, evaluation diagnostics, and SHA-256 of the source snapshot. This preserves the material used in that run, not full articles beyond what the source API supplied. Historical briefs retain their original evidence contract.
+
+To run the provider-backed diagnostic from `service`, execute `python verify_research.py > research-proof.json` using the configured Python environment and NVIDIA credentials. Its five versioned synthetic cases cover agreement, negation, numerical conflict, scope conflict, and unrelated topics. It scores the first comparison per case and reports precision, recall, and macro-F1 for the reference labels. It does not qualify retrieval, real-world accuracy, or all possible relationship types. Provider failures exit nonzero, mark the run incomplete, and publish no aggregate score. Source passages are untrusted input even when quotation presence is verified.
+
+Verification on 2026-11-16: all 11 service unit tests passed, including fabricated-quotation rejection, insufficient cross-media evidence, invalid relationship endpoints, and metric scoring. The client artifact test, ESLint, and production build passed. A live NVIDIA diagnostic attempt failed with HTTP 404 for the configured evaluation model before any cases completed; live inference accuracy remains unqualified. Browser interactions and full authenticated client/server/provider execution still require verification. A larger independently annotated corpus, human semantic review, citation correctness/completeness evaluation, and longitudinal propagation validation remain release qualification work.
+
 New completed research briefs include an interactive **Evidence workspace** above the written report:
 
 - **Trace evidence:** news and social source nodes connect to claim and comparison nodes through citation edges. Selecting a node shows its full text or rationale, source attribution, timestamp, and original URL.
