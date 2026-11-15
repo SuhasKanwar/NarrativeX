@@ -15,6 +15,7 @@ const copy = {
   search: "Find a claim or source", empty: "No matching nodes. Clear the search to inspect all evidence.",
   noGaps: "No citation gaps detected. Review factual support and source independence manually.",
   legend: "News · left / Findings · centre / Social · right. Select a node to inspect its connections.",
+  excerpts: "Evidence excerpts", attribution: "Quotation presence checked against the retrieved snapshot. Stance remains a model interpretation.",
 };
 const kindClass: Record<EvidenceNode["kind"], string> = {
   news: "text-focus", social: "text-sage", claim: "text-accent", comparison: "text-foreground",
@@ -93,11 +94,12 @@ export default function EvidenceExplorer({ graph, onInvestigate }: { graph: Evid
           </div>
           <aside aria-live="polite" className="min-w-0 rounded-lg border border-border bg-surface-raised p-4">
             {selected && <><p className={`text-xs uppercase ${kindClass[selected.kind]}`}>{selected.kind} {selected.status?.replaceAll("_", " ")}</p><h3 className="mt-3 text-sm font-semibold">{selected.label}</h3><p className="mt-3 whitespace-pre-line text-xs leading-6 text-muted">{selected.detail}</p>
+              {!!selected.passages?.length && <div className="mt-4 space-y-3"><h4 className="text-xs font-semibold">{copy.excerpts}</h4><p className="text-xs leading-5 text-muted">{copy.attribution}</p>{selected.passages.map((passage, index) => <blockquote key={index} className="border-l-2 border-accent pl-3 text-xs leading-6"><p>{passage.quote}</p><p className="text-muted">{passage.stance}</p>{safeUrl(passage.url) && <Link href={safeUrl(passage.url)!} target="_blank" rel="noopener noreferrer" className="text-focus underline">Inspect cited source</Link>}</blockquote>)}</div>}
               {selected.publisher && <p className="mt-3 text-xs text-muted">{selected.publisher} · {selected.publishedAt || "Date unavailable"}</p>}
               {sourceUrl && <Link href={sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block text-xs text-focus underline">Inspect original source</Link>}
               <h4 className="mt-5 text-xs font-semibold">Connections ({connected.length})</h4><ul className="mt-2 space-y-2">{connected.map((edge, index) => {
                 const other = graph.nodes.find(node => node.id === (edge.source === selectedId ? edge.target : edge.source))!;
-                return <li key={index}><button type="button" onClick={() => setSelectedId(other.id)} className="text-left text-xs leading-5 text-muted hover:text-foreground"><span className="font-semibold">{edge.source === selectedId ? "→" : "←"} {edge.relation.replaceAll("_", " ")}</span> · {other.label}</button>{edge.detail && <p className="text-xs leading-5 text-muted">{edge.detail}</p>}</li>;
+                return <li key={index}><button type="button" onClick={() => setSelectedId(other.id)} className="text-left text-xs leading-5 text-muted hover:text-foreground"><span className="font-semibold">{edge.source === selectedId ? "→" : "←"} {edge.relation.replaceAll("_", " ")}</span> · {other.label}</button>{edge.verification && <p className="text-xs text-accent">{edge.verification.replaceAll("_", " ")}</p>}{edge.detail && <p className="text-xs leading-5 text-muted">{edge.detail}</p>}</li>;
               })}</ul></>}
           </aside>
         </div>

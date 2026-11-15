@@ -7,8 +7,9 @@ export type EvidenceNode = {
   url?: string;
   publisher?: string;
   publishedAt?: string;
+  passages?: { url: string; quote: string; stance: "supports" | "contradicts" | "context" }[];
 };
-export type EvidenceEdge = { source: string; target: string; relation: string; detail?: string };
+export type EvidenceEdge = { source: string; target: string; relation: string; detail?: string; verification?: string };
 export type EvidenceGraph = {
   version: 1;
   nodes: EvidenceNode[];
@@ -30,13 +31,16 @@ export function readResearchArtifact(content: string): { report: string; graph: 
     const text = (value: unknown) => typeof value === "string";
     if (!graph.nodes.every((node: EvidenceNode) => node && text(node.id) && text(node.label) &&
         text(node.detail) && ["claim", "comparison", "news", "social"].includes(node.kind) &&
-        [node.status, node.url, node.publisher, node.publishedAt].every(value => value === undefined || text(value)))) {
+        [node.status, node.url, node.publisher, node.publishedAt].every(value => value === undefined || text(value)) &&
+        (node.passages === undefined || (Array.isArray(node.passages) && node.passages.every(p => p &&
+          text(p.url) && text(p.quote) && ["supports", "contradicts", "context"].includes(p.stance)))))) {
       return { report, graph: null };
     }
     const ids = new Set(graph.nodes.map((node: EvidenceNode) => node.id));
     if (ids.size !== graph.nodes.length ||
         !graph.edges.every((edge: EvidenceEdge) => edge && ids.has(edge.source) && ids.has(edge.target) &&
-          text(edge.relation) && (edge.detail === undefined || text(edge.detail))) ||
+          text(edge.relation) && (edge.detail === undefined || text(edge.detail)) &&
+          (edge.verification === undefined || text(edge.verification))) ||
         !graph.gaps.every((gap: EvidenceGraph["gaps"][number]) => gap && ids.has(gap.node) && text(gap.reason) && text(gap.action))) {
       return { report, graph: null };
     }
