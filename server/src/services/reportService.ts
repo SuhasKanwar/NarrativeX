@@ -1,4 +1,5 @@
 import PDFDocument from "pdfkit";
+import { stripResearchArtifact } from "../utils/researchArtifact";
 
 type ReportMessage = {
   sender: string;
@@ -15,7 +16,7 @@ const copy = {
 };
 
 function plainText(markdown: string) {
-  return markdown
+  return stripResearchArtifact(markdown)
     .replace(/\[([^\]]+)]\((https?:\/\/[^)]+)\)/g, "$1 ($2)")
     .replace(/^#{1,6}\s+/gm, "")
     .replace(/^>\s?/gm, "")

@@ -6,6 +6,7 @@ from config.models import NEMOTRON
 from models.nemotron import Nemotron
 from schemas.evaluation import EvaluationResult, EvidenceDocument, JudgeAssessment, NarrativeAnalysis
 from services.metrics import MetricsEvaluator, rank_documents
+from services.evidence_graph import build_evidence_graph, graph_report
 
 
 MAX_EVIDENCE_ITEMS = 8
@@ -330,6 +331,10 @@ def _render_report(
             source = _markdown_text(document.source)
             date = f" · {document.published_at}" if document.published_at else ""
             lines.append(f"- [{label}](<{document.url}>) — {source}{date}")
+    graph = build_evidence_graph(analysis, documents)
+    lines.extend(graph_report(graph))
+    # Keep the artifact with the saved brief so existing conversation storage preserves it.
+    lines.extend(["", "```narrativex-graph", json.dumps(graph, ensure_ascii=False), "```"])
     return "\n".join(lines)
 
 

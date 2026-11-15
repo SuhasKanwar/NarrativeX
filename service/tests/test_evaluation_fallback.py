@@ -88,6 +88,8 @@ class EvaluationFallbackTest(unittest.TestCase):
         self.assertIn("https://social.example/0", response)
         self.assertIn("## Research coverage", response)
         self.assertIn("## Sources", response)
+        self.assertIn("```narrativex-graph", response)
+        self.assertIn("## Verification priorities", response)
 
 
 if __name__ == "__main__":

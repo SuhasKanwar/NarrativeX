@@ -3,6 +3,7 @@ import { db } from "../prisma/db";
 import { ChatType, Sender } from "../prisma/enums";
 import { aiService } from "../services/aiService";
 import { parseConversationId, parseUserId } from "../utils/ids";
+import { stripResearchArtifact } from "../utils/researchArtifact";
 
 export async function getChatHandler(req: Request, res: Response) {
     try {
@@ -73,7 +74,7 @@ export async function postChatHandler(req: Request, res: Response) {
 
         const formattedHistory = prevChats.map(chat => ({
             role: chat.sender === 'user' ? 'user' : 'assistant',
-            content: chat.content || ""
+            content: stripResearchArtifact(chat.content || "")
         }));
 
         const userChat = await db.orm.public.Chat.create({
