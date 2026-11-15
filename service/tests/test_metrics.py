@@ -29,6 +29,7 @@ class MetricsEvaluatorTest(unittest.TestCase):
         analysis = NarrativeAnalysis(
             summary="Two outlets report the opening.",
             comparisons=[CoverageComparison(
+                passages=[],
                 topic="Public park opening",
                 relationship="agree",
                 news_position="The city opened the park.",
@@ -39,6 +40,7 @@ class MetricsEvaluatorTest(unittest.TestCase):
                 rationale="Both source types report the same event.",
             )],
             claims=[ClaimAssessment(
+                passages=[],
                 id="C1",
                 claim="The city opened a public park.",
                 status="supported",

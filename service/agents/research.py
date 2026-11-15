@@ -62,6 +62,7 @@ class ResearchAgent:
                 "request. Call the comparison tool exactly once so every investigation searches both news "
                 "and social sources. Use closely aligned search terms for a fair comparison, include Reddit, "
                 "Bluesky, and Mastodon, and prefer recent relevant results. Never answer from memory."
+                " Use sort_by=relevancy for comparison questions unless the user explicitly requests latest news."
             )),
             HumanMessage(content=query),
         ]

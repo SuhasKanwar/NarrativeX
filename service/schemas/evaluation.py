@@ -54,7 +54,7 @@ class ClaimAssessment(BaseModel):
     evidence_urls: list[str] = Field(default_factory=list)
     counter_evidence_urls: list[str] = Field(default_factory=list)
     rationale: str
-    passages: list[EvidencePassage] = Field(default_factory=list)
+    passages: list[EvidencePassage] = Field(description="Exact source excerpts justifying this claim; explicitly use [] if none exist")
 
 
 class ClaimRelationship(BaseModel):
@@ -63,7 +63,7 @@ class ClaimRelationship(BaseModel):
     relationship: RelationshipType
     confidence: float = Field(ge=0, le=1)
     rationale: str
-    passages: list[EvidencePassage] = Field(default_factory=list)
+    passages: list[EvidencePassage] = Field(description="Exact excerpts justifying this connection; explicitly use [] if none exist")
 
 
 class CoverageComparison(BaseModel):
@@ -75,7 +75,7 @@ class CoverageComparison(BaseModel):
     social_urls: list[str] = Field(min_length=1)
     confidence: float = Field(ge=0, le=1)
     rationale: str
-    passages: list[EvidencePassage] = Field(default_factory=list)
+    passages: list[EvidencePassage] = Field(description="Exact news AND social excerpts for this comparison; [] only if no shared proposition exists")
 
 
 class NarrativeAnalysis(BaseModel):

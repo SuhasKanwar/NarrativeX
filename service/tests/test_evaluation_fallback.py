@@ -44,6 +44,7 @@ class EvaluationFallbackTest(unittest.TestCase):
             NarrativeAnalysis(
                 summary="Both source classes discuss AI policy.",
                 comparisons=[CoverageComparison(
+                    passages=[],
                     topic="AI policy",
                     relationship="different_emphasis",
                     news_position="News describes legislation.",

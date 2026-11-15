@@ -19,7 +19,7 @@ class EvidenceValidationTest(unittest.TestCase):
             CoverageComparison(topic="Vote", relationship="agree", news_position="Scheduled", social_position="Passed",
                                news_urls=["news"], social_urls=["social"], confidence=.8, rationale="Test",
                                passages=[good, fabricated])], relationships=[
-            ClaimRelationship(source_claim_id="C1", target_claim_id="missing", relationship="supports",
+            ClaimRelationship(passages=[], source_claim_id="C1", target_claim_id="missing", relationship="supports",
                               confidence=.9, rationale="Invalid")])
         result = validate_evidence(analysis, docs)
         self.assertEqual(result.claims[0].status, "supported")

@@ -84,6 +84,11 @@ Comparisons require quotations from BOTH news and social. Relationships require 
 explain the connection; distinguish date changes, scope differences, negation, and framing.
 Do not infer actual propagation from publication order or political identity from a person's posts.
 Use insufficient_evidence whenever the excerpts cannot justify the conclusion.
+Coverage agreement describes what the two texts SAY, not whether their shared claim is true.
+Identical statements agree even without independent corroboration. Opposite assertions about the
+same event disagree even when neither is verified. Explain uncertainty in rationale and unknowns.
+Always include passages for these comparisons; missing dates alone do not erase textual agreement
+or logical contradiction. Each quote must reproduce the supplied text exactly, including punctuation.
 """.strip(),
             NarrativeAnalysis,
         )

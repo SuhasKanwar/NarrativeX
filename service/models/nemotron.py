@@ -5,6 +5,7 @@ from utils.logger import logger
 from utils.exception import NarrativeXException
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.utils.function_calling import convert_to_openai_tool
 from pydantic import BaseModel
 
 from config.prompts import NEMOTRON_SYSTEM_PROMPT
@@ -70,11 +71,15 @@ class Nemotron:
         schema: type[StructuredResult],
     ) -> StructuredResult:
         try:
-            result = self.llm.with_structured_output(schema).invoke([
+            tool = convert_to_openai_tool(schema)
+            result = self.llm.bind_tools([tool], tool_choice=schema.__name__).invoke([
                 self.system_prompt,
                 ("human", prompt),
             ])
-            return schema.model_validate(result)
+            calls = [call for call in result.tool_calls if call["name"] == schema.__name__]
+            if len(calls) != 1:
+                raise ValueError("Expected exactly one structured evaluation tool result")
+            return schema.model_validate(calls[0]["args"])
         except Exception as error:
             logger.error(f"Error generating structured response: {error}")
             raise NarrativeXException(

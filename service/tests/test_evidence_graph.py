@@ -9,12 +9,12 @@ class EvidenceGraphTest(unittest.TestCase):
         documents = [EvidenceDocument(url="https://news.example/a", source_type="news", source="Outlet")]
         analysis = NarrativeAnalysis(
             summary="A limited sample.",
-            claims=[ClaimAssessment(id="C1", claim="A policy passed.", status="unverified", confidence=0.2,
+            claims=[ClaimAssessment(passages=[], id="C1", claim="A policy passed.", status="unverified", confidence=0.2,
                                     evidence_urls=[documents[0].url, "https://invented.example"], rationale="Needs review.")],
-            comparisons=[CoverageComparison(topic="Policy", relationship="insufficient_evidence",
+            comparisons=[CoverageComparison(passages=[], topic="Policy", relationship="insufficient_evidence",
                 news_position="Reported", social_position="Unavailable", news_urls=[documents[0].url],
                 social_urls=["https://invented.example"], confidence=0.1, rationale="Missing social evidence.")],
-            relationships=[ClaimRelationship(source_claim_id="C1", target_claim_id="missing",
+            relationships=[ClaimRelationship(passages=[], source_claim_id="C1", target_claim_id="missing",
                 relationship="supports", confidence=0.1, rationale="Invalid endpoint.")],
         )
         graph = build_evidence_graph(analysis, documents)
@@ -26,7 +26,7 @@ class EvidenceGraphTest(unittest.TestCase):
         self.assertEqual(graph["nodes"][0]["url"], documents[0].url)
 
         analysis.claims.append(analysis.claims[0].model_copy(update={"id": "C2", "claim": "The policy did not pass."}))
-        analysis.relationships.append(ClaimRelationship(source_claim_id="C1", target_claim_id="C2",
+        analysis.relationships.append(ClaimRelationship(passages=[], source_claim_id="C1", target_claim_id="C2",
             relationship="contradicts", confidence=0.7, rationale="Different reported outcomes."))
         graph = build_evidence_graph(analysis, documents)
         self.assertTrue(any(edge["relation"] == "contradicts" for edge in graph["edges"]))
