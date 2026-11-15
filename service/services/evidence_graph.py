@@ -54,6 +54,9 @@ def build_evidence_graph(analysis: NarrativeAnalysis, documents: list[EvidenceDo
                     "detail": relationship.rationale}
             if edge not in edges:
                 edges.append(edge)
+                if relationship.relationship == "contradicts":
+                    gaps.append({"node": source, "reason": "Potential conflict between claims",
+                                 "action": "Check the linked claim, dates, and scope against primary evidence before resolving this model-inferred conflict."})
 
     return {"version": 1, "nodes": nodes, "edges": edges, "gaps": gaps}
 

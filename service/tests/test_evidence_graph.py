@@ -25,6 +25,13 @@ class EvidenceGraphTest(unittest.TestCase):
         self.assertIn("No counter-evidence", "\n".join(graph_report(graph)))
         self.assertEqual(graph["nodes"][0]["url"], documents[0].url)
 
+        analysis.claims.append(analysis.claims[0].model_copy(update={"id": "C2", "claim": "The policy did not pass."}))
+        analysis.relationships.append(ClaimRelationship(source_claim_id="C1", target_claim_id="C2",
+            relationship="contradicts", confidence=0.7, rationale="Different reported outcomes."))
+        graph = build_evidence_graph(analysis, documents)
+        self.assertTrue(any(edge["relation"] == "contradicts" for edge in graph["edges"]))
+        self.assertTrue(any(gap["reason"] == "Potential conflict between claims" for gap in graph["gaps"]))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -17,6 +17,8 @@ import {
   Trash2,
 } from "lucide-react";
 import { md } from "@/lib/markdown";
+import { readResearchArtifact } from "@/lib/research-graph";
+import EvidenceExplorer from "./EvidenceExplorer";
 import { pushToast } from "@/lib/toasts";
 import {
   workspace,
@@ -57,10 +59,11 @@ const copy = {
   waiting: "Your brief will appear here when the research finishes.",
 };
 
-function ResearchBrief({ message, conversationId }: { message: Chat; conversationId?: string }) {
+function ResearchBrief({ message, conversationId, onInvestigate }: { message: Chat; conversationId?: string; onInvestigate: (question: string) => void }) {
   const [copied, setCopied] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState("");
+  const artifact = readResearchArtifact(message.content || "");
   return (
     <article className="overflow-hidden rounded-2xl border border-border bg-surface-raised">
       <header className="flex items-center justify-between border-b border-border px-6 py-4">
@@ -100,7 +103,7 @@ function ResearchBrief({ message, conversationId }: { message: Chat; conversatio
           <button
             onClick={async () => {
               try {
-                await navigator.clipboard.writeText(message.content || "");
+                await navigator.clipboard.writeText(artifact.report);
                 setCopied(true);
                 pushToast("success", copy.copySuccess);
               } catch {
@@ -115,9 +118,10 @@ function ResearchBrief({ message, conversationId }: { message: Chat; conversatio
           </button>
         </div>
       </header>
+      {artifact.graph && <EvidenceExplorer graph={artifact.graph} onInvestigate={onInvestigate} />}
       <div
         className="max-w-none break-words p-6 text-sm leading-7 [&_a]:text-focus [&_a]:underline [&_a]:underline-offset-4 [&_blockquote]:my-4 [&_blockquote]:border-l-2 [&_blockquote]:border-accent [&_blockquote]:pl-4 [&_h1]:mb-5 [&_h1]:font-editorial [&_h1]:text-3xl [&_h2]:my-5 [&_h2]:text-xl [&_h3]:my-4 [&_h3]:font-semibold [&_li]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-3 [&_pre]:overflow-auto [&_pre]:rounded-lg [&_pre]:bg-surface [&_pre]:p-4 [&_table]:my-5 [&_table]:block [&_table]:w-max [&_table]:min-w-full [&_table]:max-w-full [&_table]:overflow-x-auto [&_table]:border-collapse [&_table]:text-left [&_thead]:bg-surface [&_tbody_tr:nth-child(even)]:bg-surface/50 [&_td]:max-w-[420px] [&_td]:whitespace-normal [&_td]:border [&_td]:border-border [&_td]:align-top [&_td]:p-3 [&_th]:whitespace-nowrap [&_th]:border [&_th]:border-border [&_th]:p-3 [&_ul]:list-disc [&_ul]:pl-5"
-        dangerouslySetInnerHTML={{ __html: md.render(message.content || "") }}
+        dangerouslySetInnerHTML={{ __html: md.render(artifact.report) }}
       />
       {error && (
         <p role="alert" className="px-6 pb-4 text-xs text-error">
@@ -404,7 +408,7 @@ export default function ResearchStudio({
                     </p>
                   </div>
                 ) : (
-                  <ResearchBrief message={message} conversationId={conversationId} />
+                  <ResearchBrief message={message} conversationId={conversationId} onInvestigate={question => { setDraft(question.slice(0, 2000)); input.current?.focus(); }} />
                 )}
               </Reveal>
             ))}

@@ -79,6 +79,21 @@ The client does not call the AI service directly. Protected API routes are authe
 
 The research tool boundary uses fixed server functions and validated parameters; the LLM does not receive credentials or call third-party providers directly.
 
+## Research workspace: evidence graphs and verification priorities
+
+New completed research briefs include an interactive **Evidence workspace** above the written report:
+
+- **Trace evidence:** news and social source nodes connect to claim and comparison nodes through citation edges. Selecting a node shows its full text or rationale, source attribution, timestamp, and original URL.
+- **Inspect disagreement:** directed claim relationships show the model's rationale. Counter-citations and contradiction links use dashed edges. Relationship labels and directions are available in the inspector and keyboard-accessible node list.
+- **Prioritize verification:** a deterministic queue identifies uncited claims, claims citing only one media class, missing counter-evidence, comparisons missing valid news/social citations, and model-inferred contradictions to review. A queue action drafts a follow-up question in the existing composer for the researcher to review and submit.
+- **Export for analysis:** download the graph as JSON containing versioned nodes, edges, and verification tasks. This can be used for external network analysis or manual review.
+
+The graph is built from structured analysis and the exact retrieved URLs, without another LLM call. Unknown source URLs and dangling claim relationships are excluded. A missing counter-citation describes the retrieved sample only; it does not prove that no contrary evidence exists. Citation edges record references rather than semantic entailment. Claim relationships are model inferences and do not demonstrate influence, transmission, causation, or political affiliation.
+
+The design draws on [evidence-graph reasoning for fact checking](https://aclanthology.org/2020.acl-main.549/) and the importance of attribution and derivation described by [W3C PROV-O](https://www.w3.org/TR/2013/PR-prov-o-20130312/). This is an inspection interface over the existing evaluator, not an implementation of that paper's trained graph model or a PROV-O RDF exporter.
+
+For backward-compatible persistence, the brief stores a version-1 graph artifact in a `narrativex-graph` Markdown fence. The client validates that artifact before rendering it. Copying the brief, exporting its PDF, and sending prior messages to the model omit the storage block; the human-readable verification priorities remain in the report. Older saved briefs continue to display normally and acquire a graph only when a new analysis is generated. Graphs currently describe one report's selected evidence, not an accumulated longitudinal corpus.
+
 ## Models
 
 Model IDs are kept in [`service/config/models.py`](service/config/models.py), not environment variables.
