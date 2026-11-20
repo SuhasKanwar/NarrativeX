@@ -65,8 +65,8 @@ class ResearchAgent:
             SystemMessage(content=(
                 "You collect evidence for NarrativeX. Choose precise API parameters from the user's "
                 "request. Call the comparison tool exactly once so every investigation searches both news "
-                "and social sources. Use closely aligned search terms for a fair comparison, include Reddit, "
-                "Bluesky, and Mastodon, and prefer recent relevant results. Never answer from memory."
+                "and social sources. Use closely aligned search terms for a fair comparison. "
+                "The server selects the enabled social sources. Never answer from memory."
                 " Use sort_by=relevancy for comparison questions unless the user explicitly requests latest news."
                 " Supply the core topic as a short plain-text phrase, without quotes or Boolean operators."
                 " For broad questions about competing claims, add one focus_topic naming a concrete policy"

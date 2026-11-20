@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { SOCIAL_CACHE_TTL } from "../lib/config";
 import CacheService, { cacheService } from "../services/cacheService";
 import {
+  DEFAULT_SOCIAL_PLATFORMS,
   fetchSocialPosts,
   SOCIAL_PLATFORMS,
   type SocialPlatform,
@@ -9,7 +10,7 @@ import {
 
 export async function searchSocialHandler(req: Request, res: Response) {
   const rawTopics = req.body?.topics;
-  const platforms = req.body?.platforms ?? SOCIAL_PLATFORMS;
+  const platforms = req.body?.platforms ?? DEFAULT_SOCIAL_PLATFORMS;
   const limit = Number(req.body?.limit ?? 10);
 
   if (!Array.isArray(rawTopics) || !rawTopics.length || rawTopics.length > 10 ||

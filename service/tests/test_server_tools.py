@@ -27,6 +27,11 @@ class ServerToolsTest(unittest.TestCase):
             "topics": ["climate policy"], "platforms": ["reddit"], "limit": 3,
         })
 
+        search_social_posts(["climate policy"], "token", limit=3)
+        self.assertEqual(request.call_args.kwargs["json"], {
+            "topics": ["climate policy"], "limit": 3,
+        })
+
 
 if __name__ == "__main__":
     unittest.main()

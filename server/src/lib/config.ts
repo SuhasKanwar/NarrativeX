@@ -13,6 +13,7 @@ export const NEWS_API_BASE_URL: string = "https://newsapi.org/v2";
 export const NEWS_CACHE_TTL: number = 900000;
 export const SOCIAL_CACHE_TTL: number = 300000;
 
+export const REDDIT_APPROVED_ACCESS = process.env.REDDIT_APPROVED_ACCESS === "true";
 export const REDDIT_CLIENT_ID: string = process.env.REDDIT_CLIENT_ID || "";
 export const REDDIT_CLIENT_SECRET: string = process.env.REDDIT_CLIENT_SECRET || "";
 export const REDDIT_USER_AGENT: string = process.env.REDDIT_USER_AGENT || "NarrativeX/1.0";

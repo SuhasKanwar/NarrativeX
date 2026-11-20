@@ -1,4 +1,5 @@
 import {
+  REDDIT_APPROVED_ACCESS,
   REDDIT_CLIENT_ID,
   REDDIT_CLIENT_SECRET,
   REDDIT_USER_AGENT,
@@ -6,6 +7,10 @@ import {
 
 export const SOCIAL_PLATFORMS = ["reddit", "bluesky", "mastodon"] as const;
 export type SocialPlatform = typeof SOCIAL_PLATFORMS[number];
+const redditConfigured = REDDIT_APPROVED_ACCESS && Boolean(REDDIT_CLIENT_ID && REDDIT_CLIENT_SECRET);
+export const DEFAULT_SOCIAL_PLATFORMS: readonly SocialPlatform[] = redditConfigured
+  ? SOCIAL_PLATFORMS
+  : ["bluesky", "mastodon"];
 
 export type SocialPost = {
   id: string;
@@ -37,8 +42,8 @@ async function getJson<T>(url: string, init?: RequestInit): Promise<T> {
 
 async function getRedditToken(): Promise<string> {
   if (redditToken && redditToken.expiresAt > Date.now()) return redditToken.value;
-  if (!REDDIT_CLIENT_ID || !REDDIT_CLIENT_SECRET) {
-    throw new Error("Reddit credentials are not configured");
+  if (!redditConfigured) {
+    throw new Error("Reddit search requires approved access and configured credentials");
   }
 
   const credentials = Buffer.from(`${REDDIT_CLIENT_ID}:${REDDIT_CLIENT_SECRET}`).toString("base64");

@@ -52,17 +52,19 @@ def search_social_posts(
     limit: int = 10,
 ) -> dict[str, Any]:
     topics = list(dict.fromkeys(topic.strip() for topic in topics if topic.strip()))
-    platforms = list(dict.fromkeys(platforms or SOCIAL_PLATFORMS))
     if not 1 <= len(topics) <= 10 or any(len(topic) > 100 for topic in topics):
         raise ValueError("Social topics must contain 1 to 10 values of at most 100 characters")
-    if not platforms or any(platform not in SOCIAL_PLATFORMS for platform in platforms):
+    if platforms is not None and (not platforms or any(platform not in SOCIAL_PLATFORMS for platform in platforms)):
         raise ValueError("Unsupported social platform")
     if not 1 <= limit <= 25:
         raise ValueError("Social limit must be between 1 and 25")
 
+    query: dict[str, Any] = {"topics": topics, "limit": limit}
+    if platforms is not None:
+        query["platforms"] = list(dict.fromkeys(platforms))
     return _request(
         "POST",
         "/api/social/search",
         access_token,
-        json={"topics": topics, "platforms": platforms, "limit": limit},
+        json=query,
     )
