@@ -9,7 +9,7 @@ from schemas.evaluation import (
     MathematicalMetrics,
     NarrativeAnalysis,
 )
-from services.evaluation import EvaluationService, _flatten_sources, _select_evidence
+from services.evaluation import EvaluationService, _flatten_sources, _research_evidence, _select_evidence
 from utils.exception import NarrativeXException
 
 
@@ -28,6 +28,16 @@ SOURCES = {
 
 
 class EvaluationFallbackTest(unittest.TestCase):
+    def test_selection_keeps_matching_cross_media_story_over_generic_results(self):
+        headline = "Global trade at APEC: Xi announces digital customs framework"
+        sources = {"topic": "global trade", "topics": ["global trade", "tariffs"], "calls": [
+            {"data": {"articles": [
+                {"url": f"https://news.example/{i}", "title": "Global trade digest"} for i in range(3)
+            ] + [{"url": "https://news.example/apec", "title": headline}]}},
+            {"data": {"posts": [{"url": "https://social.example/apec", "content": headline}]}},
+        ]}
+        self.assertIn("https://news.example/apec", [doc.url for doc in _research_evidence(sources, "Compare global trade")])
+
     def test_evidence_selection_preserves_news_and_social_sources(self):
         selected = _select_evidence("AI policy", _flatten_sources(SOURCES), 8)
 

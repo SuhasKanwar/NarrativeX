@@ -68,13 +68,20 @@ def rank_documents(
     query: str,
     documents: list[EvidenceDocument],
     limit: int,
+    counterparts: list[EvidenceDocument] | None = None,
 ) -> list[EvidenceDocument]:
     if len(documents) <= limit:
         return documents
-    vectors = _tfidf_vectors([query, *[document.searchable_text() for document in documents]])
+    vectors = _tfidf_vectors([
+        query, *[document.searchable_text() for document in documents],
+        *[document.searchable_text() for document in counterparts or []],
+    ])
+    peer_vectors = vectors[len(documents) + 1:]
     ranked = sorted(
         zip(documents, vectors[1:]),
-        key=lambda item: _cosine(vectors[0], item[1]),
+        key=lambda item: _cosine(vectors[0], item[1]) + max(
+            (_cosine(item[1], peer) for peer in peer_vectors), default=0,
+        ),
         reverse=True,
     )
     return [document for document, _ in ranked[:limit]]

@@ -224,7 +224,8 @@ def _research_evidence(sources: dict[str, Any], query: str) -> list[EvidenceDocu
         for medium in ("news", "social"):
             candidates = [document for document in matches
                           if document.source_type == medium and document.url not in selected]
-            for document in rank_documents(search, candidates, per_medium):
+            peers = [document for document in matches if document.source_type != medium]
+            for document in rank_documents(search, candidates, per_medium, counterparts=peers):
                 selected[document.url] = document
     return list(selected.values())
 
@@ -310,7 +311,8 @@ def _render_report(
     summary = analysis.summary if comparable else "The retrieved sample does not support a cross-media conclusion."
     lines = ["# Narrative assessment", "", summary, "",
              f"**Sample:** {len(news_urls)} news articles, {len(social_urls)} social posts. "
-             f"Excerpt coverage on both sides for {len(comparable)} of {len(analysis.comparisons)} comparisons.",
+             f"{len(comparable)} comparisons with a cross-media finding, "
+             f"{len(analysis.comparisons) - len(comparable)} with insufficient evidence.",
              "",
              "Findings and confidence are model assessments of the retrieved sample. Exact quotation checks verify attribution; factual support requires review.",
              "", "## News vs social"]
