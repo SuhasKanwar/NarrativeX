@@ -132,7 +132,7 @@ export default async function smoke(
     assert.equal(removed, true);
     assert.equal(
       requests.some(
-        (r) => r.url().includes(":8000") || r.url().includes("/api/agent"),
+        (r) => new URL(r.url()).port === "8001" || r.url().includes("/api/agent"),
       ),
       false,
     );

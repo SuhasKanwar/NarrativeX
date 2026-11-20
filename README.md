@@ -46,7 +46,7 @@ The dashboard's geopolitical map currently places headlines using a keyword-to-c
 | --- | ---: | --- |
 | `client/` | `3000` | Next.js UI, NextAuth session, dashboard, chat, Markdown rendering, PDF download |
 | `server/` | `9000` | Bun/Express API, JWT authentication, PostgreSQL persistence through Prisma, provider adapters, in-memory cache |
-| `service/` | `8000` | FastAPI/LangGraph routing, model tool planning, structured analysis, evaluation and metrics |
+| `service/` | `8001` | FastAPI/LangGraph routing, model tool planning, structured analysis, evaluation and metrics |
 
 ```mermaid
 flowchart LR
@@ -55,7 +55,7 @@ flowchart LR
     S -->|Persist conversations and messages| DB[(PostgreSQL)]
     S -->|News search| N[NewsAPI / Google News RSS]
     S -->|Social search| P[Reddit / Bluesky / Mastodon]
-    S -->|Internal query with delegated user token| A[FastAPI / LangGraph :8000]
+    S -->|Internal query with delegated user token| A[FastAPI / LangGraph :8001]
     A -->|Choose paired search parameters| M1[NVIDIA Nemotron Ultra]
     A -->|search_news + search_social_posts| S
     A -->|Analyze evidence and judge result| M2[NVIDIA Nemotron Super]
@@ -243,7 +243,7 @@ cd service
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
-uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+uvicorn app:app --host 0.0.0.0 --port 8001 --reload
 ```
 
 ```bash
@@ -252,7 +252,7 @@ bun install
 bun run dev
 ```
 
-The client is at `http://localhost:3000`, the API is at `http://localhost:9000`, and the AI service is at `http://localhost:8000`. By default the server calls the AI service at port `8000`, and the AI service calls the server at port `9000`. Keep the latter reachable from the service process because it uses the delegated JWT to collect sources.
+The client is at `http://localhost:3000`, the API is at `http://localhost:9000`, and the AI service is at `http://localhost:8001`. Port `8000` is available for VA POC. For an existing local setup, set `PORT=8001` in `service/.env` and `MICROSERVICE_BASE_URL=http://localhost:8001` in `server/.env`. The AI service still collects sources through the API on port `9000`.
 
 For database setup or contract changes, review [`server/src/prisma/contract.prisma`](server/src/prisma/contract.prisma) and the available scripts in [`server/package.json`](server/package.json). The repository currently does not include a PostgreSQL container or a seed dataset.
 

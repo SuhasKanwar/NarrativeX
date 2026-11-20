@@ -7,10 +7,10 @@ services:
       - ./service/.env
     environment:
       HOST: 0.0.0.0
-      PORT: "8000"
+      PORT: "8001"
       SERVER_BASE_URL: http://server:9000
     expose:
-      - "8000"
+      - "8001"
     restart: unless-stopped
 
   server:
@@ -21,7 +21,7 @@ services:
       - ./server/.env
     environment:
       PORT: "9000"
-      MICROSERVICE_BASE_URL: http://service:8000
+      MICROSERVICE_BASE_URL: http://service:8001
     ports:
       - "${SERVER_HOST_PORT:-9000}:9000"
     depends_on:
