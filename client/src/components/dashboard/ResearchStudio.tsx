@@ -21,6 +21,7 @@ import {
 import { md } from "@/lib/markdown";
 import { readResearchArtifact } from "@/lib/research-graph";
 import EvidenceExplorer from "./EvidenceExplorer";
+import FullScreenDialog from "./FullScreenDialog";
 import { pushToast } from "@/lib/toasts";
 import {
   workspace,
@@ -75,9 +76,6 @@ function ResearchBrief({ message, conversationId, question, onInvestigate }: {
   const [error, setError] = useState("");
   const [expanded, setExpanded] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
-    if (expanded && !dialog.current?.open) dialog.current?.showModal();
-  }, [expanded]);
   const artifact = readResearchArtifact(message.content || "");
   const incomplete = artifact.graph?.state === "incomplete" ||
     /^# (Retrieved sources|Research could not be completed)\b/.test(artifact.report);
@@ -182,24 +180,15 @@ function ResearchBrief({ message, conversationId, question, onInvestigate }: {
     <article className="overflow-hidden rounded-2xl border border-border bg-surface-raised">
       {header(false)}
       {body}
-      <dialog
-        ref={dialog}
-        onClose={() => setExpanded(false)}
-        aria-label={copy.fullScreen}
-        className="fixed inset-0 m-0 h-dvh max-h-none w-full max-w-none overflow-hidden border-none bg-surface p-0 text-foreground"
-      >
-        {expanded && (
-          <div className="flex h-full flex-col">
-            {header(true)}
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-              <div className="mx-auto w-full max-w-7xl pb-8">
-                {question && <p className="whitespace-pre-wrap break-words border-b border-border px-6 py-4 text-sm text-muted">{question}</p>}
-                {body}
-              </div>
-            </div>
+      <FullScreenDialog dialogRef={dialog} open={expanded} onClose={() => setExpanded(false)} label={copy.fullScreen}>
+        {header(true)}
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <div className="mx-auto w-full max-w-7xl pb-8">
+            {question && <p className="whitespace-pre-wrap break-words border-b border-border px-6 py-4 text-sm text-muted">{question}</p>}
+            {body}
           </div>
-        )}
-      </dialog>
+        </div>
+      </FullScreenDialog>
     </article>
   );
 }
@@ -473,9 +462,9 @@ export default function ResearchStudio({
         ) : (
           <div className="space-y-7 py-7">
             {messages.map((message, index) => (
-              <Reveal key={message.id}>
+              <div key={message.id} className="origin-top motion-safe:animate-chat-turn">
                 {message.sender === "user" ? (
-                  <div className="border-l-2 border-accent py-2 pl-5">
+                  <div className="border-l-2 border-accent py-2 pl-5 transition-colors duration-200 hover:bg-sage/10">
                     <p className="text-[9px] tracking-[.2em] text-muted">
                       {copy.question} /{" "}
                       {String(Math.floor(index / 2) + 1).padStart(2, "0")}
@@ -491,12 +480,12 @@ export default function ResearchStudio({
                       onInvestigate={question => { setDraft(question.slice(0, 2000)); input.current?.focus(); }} />
                   </div>
                 )}
-              </Reveal>
+              </div>
             ))}
           </div>
         )}
         {busy && pendingQuestion && (
-          <div ref={pendingTurn} className="space-y-6 pb-6 motion-safe:animate-enter">
+          <div ref={pendingTurn} className="space-y-6 pb-6 motion-safe:animate-chat-turn">
             <div className="border-l-2 border-accent pl-5">
               <p className="text-[9px] tracking-[.2em] text-muted">
                 {copy.question}

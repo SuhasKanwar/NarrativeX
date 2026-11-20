@@ -8,6 +8,15 @@ export default async function smoke(
   baseURL = "http://localhost:3100",
 ) {
   const id = "11111111-1111-4111-8111-111111111111";
+  const graph = {
+    version: 1,
+    nodes: [
+      { id: "claim:1", kind: "claim", label: "Trade claim", detail: "A claim from the sample." },
+      { id: "source:1", kind: "news", label: "Fixture headline", detail: "Evidence excerpt." },
+    ],
+    edges: [{ source: "claim:1", target: "source:1", relation: "cites" }],
+    gaps: [],
+  };
   let title = "Test investigation";
   let chats = [];
   let removed = false;
@@ -64,7 +73,7 @@ export default async function smoke(
         {
           id: `a${chats.length}`,
           sender: "bot",
-          content: "## Evidence overview\n\nEvidence is incomplete.",
+          content: `## Evidence overview\n\nEvidence is incomplete.\n\n\`\`\`narrativex-graph\n${JSON.stringify(graph)}\n\`\`\``,
         },
       ];
       return reply(r, chats.slice(-2));
@@ -118,6 +127,18 @@ export default async function smoke(
     const viewport = page.viewportSize();
     assert.equal(bounds.width, viewport.width);
     assert.equal(bounds.height, viewport.height);
+    const maximizeGraph = fullScreen.getByRole("button", { name: "Maximize graph" });
+    await maximizeGraph.click();
+    const graphDialog = page.getByRole("dialog", { name: "Expanded evidence graph" });
+    const sourceNode = graphDialog.getByLabel("Claim and source connections")
+      .getByRole("button", { name: "news: Fixture headline" });
+    await sourceNode.focus();
+    await sourceNode.press("Enter");
+    assert.equal(await sourceNode.getAttribute("aria-pressed"), "true");
+    await page.keyboard.press("Escape");
+    await graphDialog.waitFor({ state: "hidden" });
+    assert.equal(await maximizeGraph.evaluate((element) => document.activeElement === element), true);
+    assert.equal(await fullScreen.isVisible(), true);
     await page.keyboard.press("Escape");
     await fullScreen.waitFor({ state: "hidden" });
     assert.equal(await expand.evaluate((element) => document.activeElement === element), true);

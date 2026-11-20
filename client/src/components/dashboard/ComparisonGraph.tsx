@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useId } from "react";
 import Link from "next/link";
+import { Check } from "lucide-react";
 import type { EvidenceGraph, EvidenceNode } from "@/lib/research-graph";
 import { safeUrl } from "@/lib/workspace";
 
@@ -17,29 +18,38 @@ const relations: Record<string, string> = {
   insufficient_evidence: "Insufficient evidence",
 };
 
-export default function ComparisonGraph({ graph, findings }: { graph: EvidenceGraph; findings: EvidenceNode[] }) {
-  const [selected, setSelected] = useState(findings[0].id);
-  const finding = findings.find(node => node.id === selected) ?? findings[0];
+const cardMotion = "group min-w-0 rounded-xl border p-4 hover:border-focus hover:shadow-md focus-within:border-focus motion-safe:transition-[translate,border-color,box-shadow] motion-safe:duration-200 motion-safe:hover:-translate-y-0.5";
+
+export default function ComparisonGraph({ graph, findings, selectedId, onSelect }: {
+  graph: EvidenceGraph;
+  findings: EvidenceNode[];
+  selectedId: string;
+  onSelect: (id: string) => void;
+}) {
+  const finding = findings.find(node => node.id === selectedId) ?? findings[0];
+  const comparisonField = useId();
 
   return (
-    <div className="space-y-4">
-      <label className="block text-xs text-muted">
-        Comparison
-        <select value={finding.id} onChange={event => setSelected(event.target.value)}
-          className="mt-2 block w-full rounded-lg border border-border bg-surface-raised p-3 text-sm text-foreground">
+    <div className="@container space-y-4">
+      <div>
+        <label htmlFor={comparisonField} className="block text-xs text-muted">Comparison</label>
+        <select id={comparisonField} value={finding.id} onChange={event => onSelect(event.target.value)}
+          className="mt-2 block w-full rounded-lg border border-border bg-surface-raised p-3 text-sm text-foreground transition-colors hover:border-focus">
           {findings.map(node => <option key={node.id} value={node.id}>{node.label}</option>)}
         </select>
-      </label>
-      <figure aria-label="News and social inference graph"
-        className="grid items-stretch gap-2 xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)_auto_minmax(0,1fr)]">
+      </div>
+      <figure key={finding.id} aria-label="News and social inference graph"
+        className="grid items-stretch gap-2 motion-safe:animate-graph-panel @3xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)_auto_minmax(0,1fr)]">
         {sides.map(side => {
           const sources = graph.nodes.filter(node => node.kind === side.kind && graph.edges.some(
             edge => edge.source === finding.id && edge.target === node.id
           ));
           return (
             <div key={side.kind} className="contents">
-              <article className="min-w-0 rounded-xl border border-border bg-surface-raised p-4">
-                <h3 className={`text-xs font-semibold ${side.tone}`}>{side.label}</h3>
+              <article className={`${cardMotion} border-border bg-surface-raised`}>
+                <h3 className={`flex items-center justify-between gap-2 text-xs font-semibold ${side.tone}`}>
+                  {side.label}<HoverTick />
+                </h3>
                 <p className="mt-2 break-words text-sm leading-6">{finding[side.field] || "No retained excerpt."}</p>
                 {sources.map(source => {
                   const url = source.url && safeUrl(source.url);
@@ -59,8 +69,10 @@ export default function ComparisonGraph({ graph, findings }: { graph: EvidenceGr
               </article>
               {side.kind === "news" && <>
                 <Connector />
-                <article className="min-w-0 rounded-xl border border-accent/60 bg-sage/15 p-4">
-                  <h3 className="text-xs font-semibold text-focus">{relations[finding.status ?? ""] ?? "Assessment"}</h3>
+                <article className={`${cardMotion} border-accent/60 bg-sage/15`}>
+                  <h3 className="flex items-center justify-between gap-2 text-xs font-semibold text-focus">
+                    {relations[finding.status ?? ""] ?? "Assessment"}<HoverTick />
+                  </h3>
                   <p className="mt-2 break-words text-sm leading-6">{finding.detail}</p>
                   {finding.nextCheck && <p className="mt-3 break-words text-xs leading-5 text-muted">
                     <strong>Verify next</strong> · {finding.nextCheck}
@@ -78,6 +90,11 @@ export default function ComparisonGraph({ graph, findings }: { graph: EvidenceGr
 
 function Connector() {
   return <div aria-hidden="true" className="flex items-center justify-center">
-    <span className="h-4 w-px bg-accent xl:h-px xl:w-4" />
+    <span className="h-4 w-px bg-accent @3xl:h-px @3xl:w-4" />
   </div>;
+}
+
+function HoverTick() {
+  return <Check data-card-tick aria-hidden="true" size={14}
+    className="text-focus opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 motion-safe:transition-opacity" />;
 }
