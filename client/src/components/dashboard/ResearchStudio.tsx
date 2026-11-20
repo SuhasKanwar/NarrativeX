@@ -65,14 +65,12 @@ const copy = {
   waiting: "Your brief will appear here when the research finishes.",
 };
 
-function ResearchBrief({ message, conversationId, question, onInvestigate }: {
+function ResearchBrief({ message, question, onInvestigate }: {
   message: Chat;
-  conversationId?: string;
   question?: string;
   onInvestigate: (question: string) => void;
 }) {
   const [copied, setCopied] = useState(false);
-  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState("");
   const [expanded, setExpanded] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
@@ -104,34 +102,6 @@ function ResearchBrief({ message, conversationId, question, onInvestigate }: {
           >
             {fullScreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
           </button>
-          {conversationId && (
-            <button
-              disabled={exporting}
-              onClick={async () => {
-                setExporting(true);
-                setError("");
-                try {
-                  const blob = await workspace.exportPdf(conversationId);
-                  const url = URL.createObjectURL(blob);
-                  const download = document.createElement("a");
-                  download.href = url;
-                  download.download = `narrativex-${conversationId}.pdf`;
-                  download.click();
-                  URL.revokeObjectURL(url);
-                } catch {
-                  setError(copy.exportError);
-                } finally {
-                  setExporting(false);
-                }
-              }}
-              aria-label={copy.export}
-              title={copy.export}
-              className="flex items-center gap-2 rounded-lg p-2 text-muted transition hover:bg-surface disabled:opacity-50"
-            >
-              {exporting ? <LoaderCircle size={14} className="motion-safe:animate-spin" /> : <FileDown size={14} />}
-              <span className="hidden text-[10px] sm:inline">PDF</span>
-            </button>
-          )}
           <button
             onClick={async () => {
               try {
@@ -219,6 +189,7 @@ export default function ResearchStudio({
       : "",
   );
   const [busy, setBusy] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [pendingQuestion, setPendingQuestion] = useState("");
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState("");
@@ -304,6 +275,25 @@ export default function ResearchStudio({
       setBusy(false);
     }
   }
+  async function downloadPdf() {
+    if (!conversationId || exporting) return;
+    setExporting(true);
+    setError("");
+    try {
+      const blob = await workspace.exportPdf(conversationId);
+      const url = URL.createObjectURL(blob);
+      const download = document.createElement("a");
+      download.href = url;
+      download.download = `narrativex-${conversationId}.pdf`;
+      download.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setError(copy.exportError);
+    } finally {
+      setExporting(false);
+    }
+  }
+
   async function updateConversation(action: "rename" | "delete") {
     if (!conversationId || busy) return;
     setBusy(true);
@@ -346,7 +336,17 @@ export default function ResearchStudio({
             <h1 className="truncate font-editorial text-2xl">
               {current?.title || "Investigation"}
             </h1>
-            <div className="flex gap-1">
+            <div className="flex shrink-0 gap-1">
+              <button
+                type="button"
+                disabled={exporting || busy || loading || Boolean(loadError)}
+                aria-label={copy.export}
+                title={copy.export}
+                onClick={downloadPdf}
+                className="rounded-lg p-2 text-muted hover:bg-surface disabled:opacity-50"
+              >
+                {exporting ? <LoaderCircle size={15} className="motion-safe:animate-spin" /> : <FileDown size={15} />}
+              </button>
               <button
                 disabled={busy}
                 aria-label={copy.rename}
@@ -475,7 +475,7 @@ export default function ResearchStudio({
                   </div>
                 ) : (
                   <div ref={index === messages.length - 1 ? latestTurn : undefined}>
-                    <ResearchBrief message={message} conversationId={conversationId}
+                    <ResearchBrief message={message}
                       question={messages[index - 1]?.sender === "user" ? messages[index - 1]?.content ?? undefined : undefined}
                       onInvestigate={question => { setDraft(question.slice(0, 2000)); input.current?.focus(); }} />
                   </div>
