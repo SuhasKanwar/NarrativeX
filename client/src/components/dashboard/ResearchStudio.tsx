@@ -19,8 +19,10 @@ import {
   Trash2,
 } from "lucide-react";
 import { md } from "@/lib/markdown";
+import { conversationTitle, conversationTitleLimit, titleFromQuestion } from "@/lib/conversation-title";
 import { readResearchArtifact } from "@/lib/research-graph";
 import EvidenceExplorer from "./EvidenceExplorer";
+import ConversationTitle from "./ConversationTitle";
 import FullScreenDialog from "./FullScreenDialog";
 import { pushToast } from "@/lib/toasts";
 import {
@@ -199,6 +201,7 @@ export default function ResearchStudio({
   const pendingTurn = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
   const current = history.find((item) => item.id === conversationId);
+  const heading = conversationTitle(current?.title, messages.find(message => message.sender === "user")?.content ?? "");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -255,7 +258,7 @@ export default function ResearchStudio({
     setDraft("");
     let id = conversationId;
     try {
-      if (!id) id = (await workspace.create(question.slice(0, 90))).id;
+      if (!id) id = (await workspace.create(titleFromQuestion(question))).id;
       const response = await workspace.send(id, question);
       setMessages((previous) => [...previous, ...response]);
       setPendingQuestion("");
@@ -332,10 +335,8 @@ export default function ResearchStudio({
           </header>
         </Reveal>
         {conversationId && (
-          <div className="mt-6 flex items-center justify-between gap-3">
-            <h1 className="truncate font-editorial text-2xl">
-              {current?.title || "Investigation"}
-            </h1>
+          <div className="mt-6 flex shrink-0 items-start justify-between gap-3 pb-4 sm:pb-5">
+            <ConversationTitle key={heading} title={heading} />
             <div className="flex shrink-0 gap-1">
               <button
                 type="button"
@@ -352,7 +353,7 @@ export default function ResearchStudio({
                 aria-label={copy.rename}
                 onClick={() => {
                   setEditing(!editing);
-                  setTitle(current?.title || "");
+                  setTitle(heading);
                 }}
                 className="rounded-lg p-2 text-muted hover:bg-surface"
               >
@@ -379,7 +380,7 @@ export default function ResearchStudio({
           >
             <input
               aria-label={copy.rename}
-              maxLength={120}
+              maxLength={conversationTitleLimit}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="min-w-0 flex-1 rounded-xl border border-border bg-surface-raised p-3 text-sm"
@@ -603,7 +604,7 @@ export default function ResearchStudio({
                 aria-current={item.id === conversationId ? "page" : undefined}
                 className={`group block rounded-xl p-3 transition duration-300 hover:translate-x-1 ${item.id === conversationId ? "bg-sage/30" : "hover:bg-surface"}`}
               >
-                <p className="line-clamp-2 text-xs leading-5">{item.title}</p>
+                <p className="line-clamp-2 text-xs leading-5 [overflow-wrap:anywhere]">{item.id === conversationId ? heading : item.title}</p>
                 <span className="mt-2 flex items-center justify-between text-[9px] text-muted">
                   {dateLabel(item.lastUpdated)}
                   <ArrowRight
