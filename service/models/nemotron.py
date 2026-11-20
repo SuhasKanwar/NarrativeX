@@ -26,6 +26,7 @@ class Nemotron:
                 temperature=NEMOTRON["TEMPERATURE"],
                 top_p=NEMOTRON["TOP_P"],
                 max_tokens=NEMOTRON["MAX_TOKENS"],
+                timeout=45,
                 model_kwargs={
                     "chat_template_kwargs": NEMOTRON["CHAT_TEMPLATE_KWARGS"]
                 }
@@ -69,10 +70,12 @@ class Nemotron:
         self,
         prompt: str,
         schema: type[StructuredResult],
+        *,
+        max_tokens: int = 2800,
     ) -> StructuredResult:
         try:
             tool = convert_to_openai_tool(schema)
-            result = self.llm.bind_tools([tool], tool_choice=schema.__name__).invoke([
+            result = self.llm.bind_tools([tool], tool_choice=schema.__name__, max_tokens=max_tokens).invoke([
                 self.system_prompt,
                 ("human", prompt),
             ])

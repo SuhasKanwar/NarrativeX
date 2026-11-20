@@ -25,7 +25,8 @@ def build_evidence_graph(analysis: NarrativeAnalysis, documents: list[EvidenceDo
         if counts[claim.id] == 1:
             claim_ids[claim.id] = node_id
         nodes.append({"id": node_id, "kind": "claim", "label": claim.claim,
-                      "detail": claim.rationale, "status": claim.status})
+                      "detail": claim.rationale if claim.passages else "No matching evidence excerpt was retained.",
+                      "status": claim.status})
         citations = (("cites", claim.evidence_urls), ("counter_cites", claim.counter_evidence_urls))
         for relation, urls in citations:
             for url in dict.fromkeys(urls):
@@ -37,14 +38,19 @@ def build_evidence_graph(analysis: NarrativeAnalysis, documents: list[EvidenceDo
             gaps.append({"node": node_id, "reason": "No retrieved evidence cited", "action": "Find a primary source that directly addresses this claim."})
         elif len(media) < 2:
             gaps.append({"node": node_id, "reason": "Only one media type cited", "action": "Check how the missing news or social side frames this claim."})
-        if not set(claim.counter_evidence_urls) & sources.keys():
-            gaps.append({"node": node_id, "reason": "No counter-evidence retrieved", "action": "Search for disconfirming evidence; absence here does not establish consensus."})
-
     for index, comparison in enumerate(analysis.comparisons):
         node_id = f"comparison:{index}"
+        news_position = comparison.news_position if comparison.news_urls else ""
+        social_position = comparison.social_position if comparison.social_urls else ""
+        rationale = comparison.rationale if news_position and social_position else (
+            "One or both positions lack a matching excerpt from the retrieved material."
+        )
         nodes.append({"id": node_id, "kind": "comparison", "label": comparison.topic,
-                      "detail": f"News: {comparison.news_position}\nSocial: {comparison.social_position}\n{comparison.rationale}",
+                      "detail": rationale, "newsPosition": news_position, "socialPosition": social_position,
+                      "nextCheck": comparison.next_check,
                       "status": comparison.relationship})
+        if comparison.next_check:
+            gaps.append({"node": node_id, "reason": "Evidence to seek", "action": comparison.next_check})
         for media, urls in (("news", comparison.news_urls), ("social", comparison.social_urls)):
             valid = {document.url for document in documents if document.source_type == media}
             for url in dict.fromkeys(urls):
@@ -56,7 +62,7 @@ def build_evidence_graph(analysis: NarrativeAnalysis, documents: list[EvidenceDo
     for relationship in analysis.relationships:
         source = claim_ids.get(relationship.source_claim_id)
         target = claim_ids.get(relationship.target_claim_id)
-        if source and target and source != target:
+        if source and target and source != target and relationship.passages:
             edge = {"source": source, "target": target, "relation": relationship.relationship,
                     "detail": relationship.rationale + "".join(
                         f"\nExact excerpt ({p.url}): {p.quote}" for p in relationship.passages)}
@@ -72,9 +78,6 @@ def build_evidence_graph(analysis: NarrativeAnalysis, documents: list[EvidenceDo
         if node["id"] in findings:
             item = findings[node["id"]]
             node["passages"] = [p.model_dump() for p in item.passages]
-            if not item.passages:
-                gaps.append({"node": node["id"], "reason": "No exact evidence excerpts",
-                             "action": "Retrieve passages before accepting this finding."})
     for edge in edges:
         item = findings.get(edge["source"])
         if edge["target"].startswith("source:") and item:
@@ -90,8 +93,7 @@ def build_evidence_graph(analysis: NarrativeAnalysis, documents: list[EvidenceDo
 
 
 def graph_report(graph: dict) -> list[str]:
-    lines = ["", "## Verification priorities", "",
-             "These are gaps in the retrieved sample, not conclusions about the wider evidence."]
+    lines = []
     labels = {node["id"]: node["label"] for node in graph["nodes"]}
     lines.extend(["", "## Evidence ledger", "",
                   "Exact excerpt checks establish attribution only. Stance and conclusions are model interpretations.", "",
@@ -99,8 +101,11 @@ def graph_report(graph: dict) -> list[str]:
     def cell(value):
         return str(value).replace("|", "&#124;").replace("\n", " ").replace("<", "&lt;")
     for node in graph["nodes"]:
+        if node["kind"] != "claim":
+            continue
         for passage in node.get("passages", []):
             lines.append(f"| {cell(node['label'])} | {cell(passage['url'])} | {cell(passage['quote'])} | {passage['stance']} |")
+    lines.extend(["", "## Verification priorities", ""])
     for gap in graph["gaps"]:
         label = labels[gap["node"]].replace("\n", " ")
         lines.append(f"- {label}: {gap['reason']}. {gap['action']}")

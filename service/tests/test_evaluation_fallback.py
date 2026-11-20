@@ -1,13 +1,16 @@
+import json
+import sys
 import unittest
 from unittest.mock import Mock
 
 from schemas.evaluation import (
     CoverageComparison,
-    JudgeAssessment,
+    EvidencePassage,
     MathematicalMetrics,
     NarrativeAnalysis,
 )
 from services.evaluation import EvaluationService, _flatten_sources, _select_evidence
+from utils.exception import NarrativeXException
 
 
 SOURCES = {
@@ -32,19 +35,33 @@ class EvaluationFallbackTest(unittest.TestCase):
         self.assertEqual(sum(item.source_type == "social" for item in selected), 4)
 
     def test_fallback_returns_source_links_without_model_error_details(self):
-        result = EvaluationService.__new__(EvaluationService).fallback(SOURCES)
+        sources = {
+            "topic": "AI policy",
+            "calls": [{"data": {"articles": [{"url": "https://news.example/off-topic", "title": "Xbox trade-in"}]}}, *SOURCES["calls"]],
+        }
+        result = EvaluationService.__new__(EvaluationService).fallback(sources)
 
         self.assertIn("https://news.example/0", result["response"])
         self.assertIn("https://social.example/0", result["response"])
         self.assertNotIn("Failed to analyze due to model error", result["response"])
+        self.assertNotIn("Xbox", result["response"])
+        self.assertIn('"state": "incomplete"', result["response"])
 
     def test_report_explicitly_compares_news_and_social_evidence(self):
         model = Mock()
+        try:
+            raise TimeoutError("judge timeout")
+        except TimeoutError:
+            unavailable = NarrativeXException("judge timeout", sys)
         model.generate_structured.side_effect = [
             NarrativeAnalysis(
                 summary="Both source classes discuss AI policy.",
                 comparisons=[CoverageComparison(
-                    passages=[],
+                    passages=[
+                        EvidencePassage(reference="D1.1", stance="context"),
+                        EvidencePassage(reference="D5.1", stance="context"),
+                        EvidencePassage(reference="D99.1", stance="context"),
+                    ],
                     topic="AI policy",
                     relationship="different_emphasis",
                     news_position="News describes legislation.",
@@ -53,15 +70,10 @@ class EvaluationFallbackTest(unittest.TestCase):
                     social_urls=["https://social.example/0"],
                     confidence=0.8,
                     rationale="The sources cover the same topic with different emphasis.",
+                    next_check="Find the legislation text.",
                 )],
             ),
-            JudgeAssessment(
-                groundedness=1,
-                answer_relevance=1,
-                completeness=1,
-                source_quality=1,
-                comparison_quality=1,
-            ),
+            unavailable,
         ]
         metrics = Mock()
         metrics.evaluate.return_value = MathematicalMetrics(
@@ -91,6 +103,13 @@ class EvaluationFallbackTest(unittest.TestCase):
         self.assertIn("## Sources", response)
         self.assertIn("```narrativex-graph", response)
         self.assertIn("## Verification priorities", response)
+        self.assertIn("The model judge was unavailable", response)
+        graph = json.loads(response.split("```narrativex-graph\n")[1].split("\n```")[0])
+        comparison = next(node for node in graph["nodes"] if node["kind"] == "comparison")
+        self.assertEqual([p["quote"] for p in comparison["passages"]], ["AI policy", "AI policy debate"])
+        self.assertEqual(comparison["status"], "different_emphasis")
+        self.assertEqual(comparison["nextCheck"], "Find the legislation text.")
+        self.assertIsNone(graph["provenance"]["evaluation"]["judge"])
 
 
 if __name__ == "__main__":

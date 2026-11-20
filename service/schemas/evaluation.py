@@ -41,8 +41,9 @@ class EvidenceDocument(BaseModel):
 
 
 class EvidencePassage(BaseModel):
-    url: str
-    quote: str = Field(min_length=1, description="Exact contiguous excerpt copied from a supplied document")
+    reference: str = Field(default="", description="Exact excerpt ID from the supplied source, such as D1.2")
+    url: str = ""
+    quote: str = ""
     stance: Literal["supports", "contradicts", "context"]
 
 
@@ -71,18 +72,18 @@ class CoverageComparison(BaseModel):
     relationship: ComparisonRelation
     news_position: str
     social_position: str
-    news_urls: list[str] = Field(min_length=1)
-    social_urls: list[str] = Field(min_length=1)
+    news_urls: list[str] = Field(default_factory=list)
+    social_urls: list[str] = Field(default_factory=list)
     confidence: float = Field(ge=0, le=1)
     rationale: str
     passages: list[EvidencePassage] = Field(description="Exact news AND social excerpts for this comparison; [] only if no shared proposition exists")
+    next_check: str = Field(default="", description="Specific missing record, counterexample, or measurement to seek next")
 
 
 class NarrativeAnalysis(BaseModel):
     summary: str
     comparisons: list[CoverageComparison] = Field(
-        min_length=1,
-        description="At least one grounded comparison between news and social coverage.",
+        description="Grounded comparisons between news and social coverage; use [] if none can be assessed.",
     )
     claims: list[ClaimAssessment] = Field(default_factory=list)
     relationships: list[ClaimRelationship] = Field(default_factory=list)
@@ -130,6 +131,6 @@ class MathematicalMetrics(BaseModel):
 
 
 class EvaluationResult(BaseModel):
-    quality_score: float = Field(ge=0, le=1)
-    judge: JudgeAssessment
+    quality_score: float | None = Field(default=None, ge=0, le=1)
+    judge: JudgeAssessment | None = None
     metrics: MathematicalMetrics

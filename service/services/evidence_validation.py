@@ -33,4 +33,11 @@ def validate_evidence(analysis: NarrativeAnalysis, documents: list[EvidenceDocum
         comparison.social_urls = list(dict.fromkeys(p.url for p in comparison.passages if media[p.url] == "social"))
         if not comparison.news_urls or not comparison.social_urls:
             comparison.relationship = "insufficient_evidence"
+    supported_ids = {claim.id for claim in analysis.claims if claim.passages}
+    analysis.relationships = [
+        relationship for relationship in analysis.relationships
+        if relationship.passages and relationship.relationship != "unrelated"
+        and relationship.source_claim_id in supported_ids and relationship.target_claim_id in supported_ids
+    ]
+    analysis.unknowns = list(dict.fromkeys(analysis.unknowns))
     return analysis

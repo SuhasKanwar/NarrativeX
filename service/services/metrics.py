@@ -56,7 +56,9 @@ def _temporal_span_hours(documents: list[EvidenceDocument]) -> float:
     parsed: list[datetime] = []
     for document in documents:
         try:
-            parsed.append(datetime.fromisoformat(document.published_at.replace("Z", "+00:00")))
+            date = datetime.fromisoformat(document.published_at.replace("Z", "+00:00"))
+            if date.tzinfo is not None:
+                parsed.append(date)
         except (TypeError, ValueError):
             continue
     return (max(parsed) - min(parsed)).total_seconds() / 3600 if len(parsed) > 1 else 0.0
@@ -187,6 +189,7 @@ class MetricsEvaluator:
             embedder = self.embedder or NVIDIAEmbeddings(
                 model=EMBEDDING_MODEL["MODEL_NAME"],
                 api_key=NVIDIA_API_KEY,
+                timeout=8,
             )
             claim_vectors = embedder.embed_documents([claim.claim for claim, _ in claims])
             return [
@@ -217,6 +220,7 @@ class MetricsEvaluator:
             embedder = self.embedder or NVIDIAEmbeddings(
                 model=EMBEDDING_MODEL["MODEL_NAME"],
                 api_key=NVIDIA_API_KEY,
+                timeout=8,
             )
             query_vector = embedder.embed_query(query)
             document_vectors = embedder.embed_documents(texts)

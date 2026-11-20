@@ -70,6 +70,6 @@ def analysis_node(state: AgentState) -> dict:
         analysis = _evaluation_service().evaluate(query, source_context, session_history)
     except Exception as e:
         logger.error(f"Analysis node failed: {e}")
-        analysis = _evaluation_service().fallback(source_context)
+        analysis = _evaluation_service().fallback(source_context, query=query)
         
     return {"final_response": analysis}

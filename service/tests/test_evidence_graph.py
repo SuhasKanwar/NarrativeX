@@ -1,6 +1,6 @@
 import unittest
 
-from schemas.evaluation import ClaimAssessment, ClaimRelationship, CoverageComparison, EvidenceDocument, NarrativeAnalysis
+from schemas.evaluation import ClaimAssessment, ClaimRelationship, CoverageComparison, EvidenceDocument, EvidencePassage, NarrativeAnalysis
 from services.evidence_graph import build_evidence_graph, graph_report
 
 
@@ -21,12 +21,14 @@ class EvidenceGraphTest(unittest.TestCase):
         self.assertEqual(len(graph["edges"]), 2)
         ids = {node["id"] for node in graph["nodes"]}
         self.assertTrue(all(edge["source"] in ids and edge["target"] in ids for edge in graph["edges"]))
-        self.assertEqual(len(graph["gaps"]), 5)
-        self.assertIn("No counter-evidence", "\n".join(graph_report(graph)))
+        self.assertEqual(len(graph["gaps"]), 2)
+        self.assertIn("Missing valid social citation", "\n".join(graph_report(graph)))
         self.assertEqual(graph["nodes"][0]["url"], documents[0].url)
 
         analysis.claims.append(analysis.claims[0].model_copy(update={"id": "C2", "claim": "The policy did not pass."}))
-        analysis.relationships.append(ClaimRelationship(passages=[], source_claim_id="C1", target_claim_id="C2",
+        analysis.relationships.append(ClaimRelationship(
+            passages=[EvidencePassage(url=documents[0].url, quote="A policy passed.", stance="context")],
+            source_claim_id="C1", target_claim_id="C2",
             relationship="contradicts", confidence=0.7, rationale="Different reported outcomes."))
         graph = build_evidence_graph(analysis, documents)
         self.assertTrue(any(edge["relation"] == "contradicts" for edge in graph["edges"]))

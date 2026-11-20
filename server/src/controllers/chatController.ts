@@ -92,7 +92,9 @@ export async function postChatHandler(req: Request, res: Response) {
                 session_history: formattedHistory,
                 access_token: req.headers.authorization?.split(" ")[1]
             });
-            botText = aiResponse?.data?.response || "No research brief was returned.";
+            const result = aiResponse?.data;
+            botText = result?.response || "No research brief was returned.";
+            completed = Boolean(result?.response) && !(result.research && !result.analysis);
         } catch (error) {
             completed = false;
             console.error("Research service failed after saving the user message:", error);
@@ -119,7 +121,7 @@ export async function postChatHandler(req: Request, res: Response) {
             success: completed,
             message: completed
                 ? "Research brief generated successfully."
-                : "Research was interrupted. A retry note was saved.",
+                : "Research did not complete. The available result was saved.",
             data: [userChat, botChat]
         });
     } catch (error) {

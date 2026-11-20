@@ -7,7 +7,7 @@ from utils.logger import logger
 router = APIRouter(prefix="/api/agent", tags=["Agent"])
 
 @router.post("/query", response_model=QueryResponse)
-async def execute_query(request: QueryRequest):
+def execute_query(request: QueryRequest):
     try:
         initial_state = {
             "query": request.query,

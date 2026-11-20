@@ -86,7 +86,8 @@ export async function fetchReddit(topic: string, limit: number): Promise<SocialP
 }
 
 export async function fetchBluesky(topic: string, limit: number): Promise<SocialPost[]> {
-  const params = new URLSearchParams({ q: topic, sort: "latest", limit: String(limit) });
+  const phrase = topic.includes(" ") && !topic.includes('"') ? `"${topic}"` : topic;
+  const params = new URLSearchParams({ q: phrase, sort: "latest", limit: String(limit) });
   const data = await getJson<any>(
     `https://api.bsky.app/xrpc/app.bsky.feed.searchPosts?${params}`,
   );

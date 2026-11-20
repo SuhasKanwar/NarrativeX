@@ -21,6 +21,10 @@ TOOLS = [
                 "type": "object",
                 "properties": {
                     "topic": {"type": "string", "minLength": 1, "maxLength": 100},
+                    "focus_topic": {
+                        "type": "string", "maxLength": 80,
+                        "description": "Optional focused issue for a broad topic, e.g. tariffs for global trade. Empty for a specific question.",
+                    },
                     "news_page_size": {"type": "integer", "minimum": 4, "maximum": 20},
                     "language": {"type": ["string", "null"], "default": "en"},
                     "sort_by": {
@@ -46,10 +50,11 @@ class ResearchAgent:
             api_key=NVIDIA_API_KEY,
             temperature=1.0,
             top_p=0.95,
-            max_completion_tokens=4096,
+            max_completion_tokens=1024,
+            timeout=20,
             model_kwargs={
                 "chat_template_kwargs": {
-                    "enable_thinking": True,
+                    "enable_thinking": False,
                     "force_nonempty_content": True,
                 }
             },
@@ -63,6 +68,9 @@ class ResearchAgent:
                 "and social sources. Use closely aligned search terms for a fair comparison, include Reddit, "
                 "Bluesky, and Mastodon, and prefer recent relevant results. Never answer from memory."
                 " Use sort_by=relevancy for comparison questions unless the user explicitly requests latest news."
+                " Supply the core topic as a short plain-text phrase, without quotes or Boolean operators."
+                " For broad questions about competing claims, add one focus_topic naming a concrete policy"
+                " or disputed mechanism within that topic. Use a phrase likely to occur in public discussion."
             )),
             HumanMessage(content=query),
         ]
@@ -76,27 +84,37 @@ class ResearchAgent:
                 {"tool": "search_news", "error": error},
                 {"tool": "search_social_posts", "error": error},
             ]}
-        calls = _execute_comparison(message.tool_calls[0], access_token)
-        return {"query": query, "calls": calls}
+        call = message.tool_calls[0]
+        topics = _search_topics(call["args"])
+        calls = _execute_comparison(call["name"], call["args"], topics, access_token)
+        return {"query": query, "topic": topics[0] if topics else "", "topics": topics, "calls": calls}
 
 
-def _execute_comparison(tool_call: dict[str, Any], access_token: str | None) -> list[dict[str, Any]]:
-    if tool_call["name"] != "compare_news_and_social":
-        error = f"Unknown comparison tool: {tool_call['name']}"
+def _search_topics(arguments: dict[str, Any]) -> list[str]:
+    topics = {}
+    for key in ("topic", "focus_topic"):
+        value = arguments.get(key)
+        if isinstance(value, str) and (topic := value.replace('"', "").strip()):
+            topics.setdefault(topic.casefold(), topic)
+    return list(topics.values())
+
+
+def _execute_comparison(name: str, arguments: dict[str, Any], topics: list[str], access_token: str | None) -> list[dict[str, Any]]:
+    if name != "compare_news_and_social" or not topics:
+        error = "The research planner did not supply a valid comparison search"
         return [
             {"tool": "search_news", "error": error},
             {"tool": "search_social_posts", "error": error},
         ]
-    arguments = tool_call["args"]
     tasks = [
         ("search_news", search_news, {
-            "query": arguments.get("topic", ""),
+            "query": " OR ".join(f'"{topic}"' if " " in topic else topic for topic in topics),
             "page_size": arguments.get("news_page_size", 10),
             "language": arguments.get("language") or "en",
-            "sort_by": arguments.get("sort_by") or "publishedAt",
+            "sort_by": arguments.get("sort_by") or "relevancy",
         }),
         ("search_social_posts", search_social_posts, {
-            "topics": [arguments.get("topic", "")],
+            "topics": topics,
             "platforms": None,
             "limit": arguments.get("social_limit", 10),
         }),
