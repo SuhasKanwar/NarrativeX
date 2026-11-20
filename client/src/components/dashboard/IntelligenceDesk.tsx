@@ -38,6 +38,7 @@ const copy = {
   signals: "LOCATED STORIES",
   socialNote:
     "Public posts reflect what people are saying, not verified evidence.",
+  redditSearch: "Search on Reddit",
   cta: "Go beyond the headline.",
   ctaDescription: "Turn a developing story into a source-led investigation.",
   studio: "Open research studio",
@@ -337,7 +338,19 @@ export default function IntelligenceDesk() {
             <Radio size={20} className="text-muted" />
             <h2 className="text-xl tracking-tight">{desk.socialTitle}</h2>
           </div>
-          <p className="mb-5 text-xs text-muted">{copy.socialNote}</p>
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs text-muted">{copy.socialNote}</p>
+            <Link
+              href={`https://www.reddit.com/search/?q=${encodeURIComponent(topic)}&type=posts`}
+              target="_blank"
+              rel="noopener noreferrer"
+              prefetch={false}
+              className="inline-flex items-center gap-2 text-xs font-medium text-focus hover:underline"
+            >
+              {copy.redditSearch}
+              <ArrowUpRight size={14} aria-hidden="true" />
+            </Link>
+          </div>
         </Reveal>
         {partial.length > 0 && (
           <p role="status" className="mb-4 text-xs text-muted">

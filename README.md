@@ -33,7 +33,7 @@ These are the system's implementation contributions, not a claim that any indivi
 - Authenticated intelligence dashboard with news, public posts, and a geopolitical headlines view.
 - Research Studio with saved conversations, follow-up questions, source-linked reports, and PDF export.
 - News search through NewsAPI with Google News RSS fallback.
-- Public social search through Reddit, Bluesky, and Mastodon adapters.
+- Public social search through Bluesky and Mastodon, with manual Reddit search and an optional approved Reddit adapter.
 - Partial-provider error reporting: successful sources can still be used when another provider fails.
 - Structured claim assessments, cross-media comparisons, claim relationships, propagation signals, and unknowns.
 - Chat toasts for API responses and clean sign-out when the server rejects an expired or invalid session.
@@ -179,11 +179,15 @@ Evaluation practice follows the distinction between reference-based accuracy and
 | Source | Current access method | Credentials |
 | --- | --- | --- |
 | NewsAPI | `/v2/everything` search | `NEWS_API_KEY`; Google News RSS is used as fallback |
-| Reddit | OAuth application-only search | `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`, and a descriptive user agent |
+| Reddit | Manual topic search by default. OAuth application-only search for approved integrations. | For approved access only, set `REDDIT_APPROVED_ACCESS=true`, the Reddit client ID and secret, and a descriptive user agent. |
 | Bluesky | Public post search endpoint | No API key configured by this integration |
 | Mastodon | `mastodon.social` hashtag discovery and public hashtag timelines | No API key for the tested public flow |
 
-Provider availability, rate limits, search coverage, and the amount of text returned vary. Reddit credentials are optional for running the whole application, but Reddit results will be unavailable until configured. Mastodon's unauthenticated integration searches hashtag timelines and may return no results when the topic has no discoverable hashtags. Bluesky remains subject to its endpoint's availability. Partial failures are reported; the system does not silently replace missing evidence with model-generated facts.
+Mastodon's unauthenticated integration searches hashtag timelines and may return no results when the topic has no discoverable hashtags. Bluesky search coverage depends on endpoint availability. Partial failures remain visible alongside successful results.
+
+Reddit's public RSS support ended November 13, 2026, and Pushshift access is restricted to approved moderation uses. The dashboard's **Search on Reddit** link opens Reddit for manual review. It does not collect posts into the research report. [Reddit RSS announcement](https://www.reddit.com/r/modnews/comments/1xuj8jp/mod_monthly_your_november_2026_newsletter_is_here/), [Pushshift access](https://support.reddithelp.com/hc/en-us/articles/16470271632404-Pushshift-Access-Request).
+
+For approved noncommercial academic projects, [Reddit for Researchers](https://support.reddithelp.com/hc/en-us/articles/49381918834964-Reddit-for-Researchers-Program) provides historical data through BigQuery with a six-month delay and project-specific limits. For other integrations, [request access from Reddit](https://support.reddithelp.com/hc/en-us/articles/14945211791892-Developer-Platform-Accessing-Reddit-Data). Before enabling the OAuth adapter, confirm that the approval covers NarrativeX's collection, processing by model providers, storage and export. Apply the retention and deletion rules in the approval before importing any data.
 
 The evaluator selects at most eight documents for analysis, attempting to preserve a four-news/four-social split. News providers may return excerpts rather than full articles, and public social search does not expose private or restricted posts. The dashboard's geopolitical map is a keyword-based illustration as described above.
 
@@ -209,7 +213,7 @@ For social search, the server accepts a body like:
 ```json
 {
   "topics": ["AI regulation"],
-  "platforms": ["reddit", "bluesky", "mastodon"],
+  "platforms": ["bluesky", "mastodon"],
   "limit": 10
 }
 ```
@@ -228,7 +232,7 @@ cp server/.env.example server/.env
 cp service/.env.example service/.env
 ```
 
-Set `server/.env`'s `DATABASE_URL` to your PostgreSQL instance. Replace the example `JWT_SECRET` and `NEXTAUTH_SECRET` with private random values. Configure `NVIDIA_API_KEY` for research planning, analysis, judging, and embeddings. Configure `GROQ_API_KEY` for general conversation. `NEWS_API_KEY` and Reddit credentials enable those providers; RSS, Bluesky, and Mastodon do not require keys in the current adapters.
+Set `server/.env`'s `DATABASE_URL` to your PostgreSQL instance. Replace the example `JWT_SECRET` and `NEXTAUTH_SECRET` with private random values. Configure `NVIDIA_API_KEY` for research planning, analysis, judging, and embeddings. Configure `GROQ_API_KEY` for general conversation. `NEWS_API_KEY` enables NewsAPI. Google News RSS, Bluesky, and Mastodon do not require keys in the current adapters.
 
 Install and start each service in its own terminal from the repository root:
 
@@ -261,7 +265,7 @@ For database setup or contract changes, review [`server/src/prisma/contract.pris
 | File | Important settings |
 | --- | --- |
 | `client/.env` | `NEXT_PUBLIC_HTTP_SERVER_BASE_URL`, `NEXTAUTH_SECRET`, optional Google OAuth client ID and secret |
-| `server/.env` | `PORT`, `DATABASE_URL`, `JWT_SECRET`, optional `NEWS_API_KEY` and Reddit OAuth credentials |
+| `server/.env` | `PORT`, `DATABASE_URL`, `JWT_SECRET`, optional `NEWS_API_KEY` and approved Reddit settings |
 | `service/.env` | `PORT`, `SERVER_BASE_URL`, `NVIDIA_API_KEY`, `GROQ_API_KEY` |
 
 Provider model IDs are not environment variables. They are defined in `service/config/models.py`.

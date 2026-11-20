@@ -52,7 +52,7 @@ const content = {
       {
         question: "Which sources can I explore?",
         answer:
-          "The collection layer supports news search, Reddit, Bluesky, and Mastodon. Results depend on provider access, credentials, and availability. Some sources may be unavailable while others continue to return results.",
+          "NarrativeX searches news, Bluesky, and Mastodon by default. You can open Reddit search for the same topic. Automated Reddit collection requires approved access.",
       },
       {
         question: "Does NarrativeX decide what is true?",

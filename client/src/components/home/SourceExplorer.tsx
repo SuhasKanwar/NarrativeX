@@ -38,7 +38,7 @@ const content = {
       title: "Where the conversation deepens.",
       description:
         "Community posts reveal the questions, reactions, and competing interpretations around a topic. Understand the conversation in the context of its community.",
-      detail: "Community context, post text, discussion links, and engagement.",
+      detail: "Open Reddit search to browse discussions. Automated collection requires approved access.",
       tags: ["Communities", "Discussion", "Public reactions"],
     },
     {
