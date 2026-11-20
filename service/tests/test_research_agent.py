@@ -37,7 +37,7 @@ class ResearchAgentTest(unittest.TestCase):
         result = ResearchAgent(client).collect("check this climate claim", "token")
 
         search_news.assert_called_once_with(
-            access_token="token", query='"verified climate claim" OR "carbon taxes"', page_size=4,
+            access_token="token", query='"verified climate claim" OR "carbon taxes"', page_size=20,
             language="en", sort_by="relevancy",
         )
         search_social_posts.assert_called_once_with(

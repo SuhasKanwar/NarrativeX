@@ -109,7 +109,7 @@ def _execute_comparison(name: str, arguments: dict[str, Any], topics: list[str],
     tasks = [
         ("search_news", search_news, {
             "query": " OR ".join(f'"{topic}"' if " " in topic else topic for topic in topics),
-            "page_size": arguments.get("news_page_size", 10),
+            "page_size": 20 if len(topics) > 1 else arguments.get("news_page_size", 10),
             "language": arguments.get("language") or "en",
             "sort_by": arguments.get("sort_by") or "relevancy",
         }),

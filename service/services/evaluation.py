@@ -121,7 +121,8 @@ Always include passages for these comparisons; missing dates alone do not erase 
 or logical contradiction. A repost of a news headline shows repetition, and says little about wider
 social reactions. Distinct claims on the same theme count as competing explanations only when the
 text addresses the same question. Omit unrelated claim links.
-Lead with the strongest directly evidenced answer. Return at most three comparisons, three atomic
+Summarize the strongest directly evidenced answer in at most two sentences. Omit document counts,
+source inventories and internal excerpt IDs from the summary. Return at most three comparisons, three atomic
 claims and two claim links. Use one or two short exact excerpts per side. Compare the same subject,
 period and measure. Keep positions under 30 words. Distinguish different emphasis from conflict.
 For each finding include next_check: name a primary record, dataset or counterexample that could
@@ -213,14 +214,18 @@ def _research_evidence(sources: dict[str, Any], query: str) -> list[EvidenceDocu
     if not topics:
         return _select_evidence(query, documents, MAX_EVIDENCE_ITEMS)
     selected = {}
+    per_medium = MAX_EVIDENCE_ITEMS // (2 * len(topics))
     for search in topics:
         terms = set(re.findall(r"\w+", search.casefold())) - {"the", "of", "and", "in", "on", "a"}
         matches = [
             document for document in documents
             if terms and len(terms & set(re.findall(r"\w+", document.searchable_text().casefold()))) >= min(2, len(terms))
         ]
-        for document in _select_evidence(search, matches, MAX_EVIDENCE_ITEMS // len(topics)):
-            selected[document.url] = document
+        for medium in ("news", "social"):
+            candidates = [document for document in matches
+                          if document.source_type == medium and document.url not in selected]
+            for document in rank_documents(search, candidates, per_medium):
+                selected[document.url] = document
     return list(selected.values())
 
 
@@ -304,6 +309,9 @@ def _render_report(
     comparable = [finding for finding in analysis.comparisons if finding.relationship != "insufficient_evidence"]
     summary = analysis.summary if comparable else "The retrieved sample does not support a cross-media conclusion."
     lines = ["# Narrative assessment", "", summary, "",
+             f"**Sample:** {len(news_urls)} news articles, {len(social_urls)} social posts. "
+             f"Excerpt coverage on both sides for {len(comparable)} of {len(analysis.comparisons)} comparisons.",
+             "",
              "Findings and confidence are model assessments of the retrieved sample. Exact quotation checks verify attribution; factual support requires review.",
              "", "## News vs social"]
     for comparison in analysis.comparisons:
