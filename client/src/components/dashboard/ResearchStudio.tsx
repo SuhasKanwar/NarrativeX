@@ -10,6 +10,8 @@ import {
   Copy,
   FileDown,
   LoaderCircle,
+  Maximize2,
+  Minimize2,
   Pencil,
   Plus,
   Send,
@@ -53,6 +55,9 @@ const copy = {
   copySuccess: "Research brief copied to clipboard.",
   export: "Download PDF",
   exportError: "The PDF could not be downloaded.",
+  expand: "Open response full screen",
+  collapse: "Exit full screen",
+  fullScreen: "Research response",
   unavailable: "Could not update this investigation.",
   clipboard: "Could not copy. Select the text to copy it manually.",
   working: "INVESTIGATION IN PROGRESS",
@@ -68,20 +73,39 @@ function ResearchBrief({ message, conversationId, question, onInvestigate }: {
   const [copied, setCopied] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState("");
+  const [expanded, setExpanded] = useState(false);
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    if (expanded && !dialog.current?.open) dialog.current?.showModal();
+  }, [expanded]);
   const artifact = readResearchArtifact(message.content || "");
   const incomplete = artifact.graph?.state === "incomplete" ||
     /^# (Retrieved sources|Research could not be completed)\b/.test(artifact.report);
   const detailsStart = artifact.graph && !incomplete ? artifact.report.indexOf("\n## News vs social") : -1;
   const overview = detailsStart >= 0 ? artifact.report.slice(0, detailsStart) : "";
   const report = detailsStart >= 0 ? artifact.report.slice(detailsStart) : artifact.report;
-  return (
-    <article className="overflow-hidden rounded-2xl border border-border bg-surface-raised">
-      <header className="flex items-center justify-between border-b border-border px-6 py-4">
+  function investigate(nextQuestion: string) {
+    dialog.current?.close();
+    onInvestigate(nextQuestion);
+  }
+
+  const header = (fullScreen: boolean) => (
+      <header className="flex shrink-0 items-center justify-between border-b border-border bg-surface-raised px-6 py-4">
         <span className="flex items-center gap-2 text-[10px] tracking-[.15em] text-muted">
           <Sparkles size={14} className="text-accent" />
           {copy.report}
         </span>
         <div className="flex items-center gap-1">
+          <button
+            type="button"
+            aria-label={fullScreen ? copy.collapse : copy.expand}
+            aria-haspopup={fullScreen ? undefined : "dialog"}
+            title={fullScreen ? copy.collapse : copy.expand}
+            onClick={() => fullScreen ? dialog.current?.close() : setExpanded(true)}
+            className="rounded-lg p-2 text-muted transition hover:bg-surface"
+          >
+            {fullScreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+          </button>
           {conversationId && (
             <button
               disabled={exporting}
@@ -128,25 +152,54 @@ function ResearchBrief({ message, conversationId, question, onInvestigate }: {
           </button>
         </div>
       </header>
+  );
+
+  const body = (
+    <>
       {overview && <div className="space-y-3 px-6 pt-6 text-sm leading-7 [&_h1]:font-editorial [&_h1]:text-3xl"
         dangerouslySetInnerHTML={{ __html: md.render(overview) }} />}
       {incomplete && question && (
-        <button type="button" onClick={() => onInvestigate(question)}
+        <button type="button" onClick={() => investigate(question)}
           className="mx-6 mt-5 rounded-lg border border-accent px-3 py-2 text-xs font-semibold hover:bg-surface">
           Retry this question
         </button>
       )}
-      {!incomplete && artifact.graph && <EvidenceExplorer graph={artifact.graph} onInvestigate={onInvestigate} />}
+      {!incomplete && artifact.graph && <EvidenceExplorer graph={artifact.graph} onInvestigate={investigate} />}
       <div
         className="max-w-none break-words p-6 text-sm leading-7 [&_a]:text-focus [&_a]:underline [&_a]:underline-offset-4 [&_blockquote]:my-4 [&_blockquote]:border-l-2 [&_blockquote]:border-accent [&_blockquote]:pl-4 [&_h1]:mb-5 [&_h1]:font-editorial [&_h1]:text-3xl [&_h2]:my-5 [&_h2]:text-xl [&_h3]:my-4 [&_h3]:font-semibold [&_li]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-3 [&_pre]:overflow-auto [&_pre]:rounded-lg [&_pre]:bg-surface [&_pre]:p-4 [&_table]:my-5 [&_table]:block [&_table]:w-max [&_table]:min-w-full [&_table]:max-w-full [&_table]:overflow-x-auto [&_table]:border-collapse [&_table]:text-left [&_thead]:bg-surface [&_tbody_tr:nth-child(even)]:bg-surface/50 [&_td]:max-w-[420px] [&_td]:whitespace-normal [&_td]:border [&_td]:border-border [&_td]:align-top [&_td]:p-3 [&_th]:whitespace-nowrap [&_th]:border [&_th]:border-border [&_th]:p-3 [&_ul]:list-disc [&_ul]:pl-5"
         dangerouslySetInnerHTML={{ __html: md.render(report) }}
       />
-      {incomplete && !!artifact.graph?.nodes.length && <EvidenceExplorer graph={artifact.graph} onInvestigate={onInvestigate} />}
+      {incomplete && !!artifact.graph?.nodes.length && <EvidenceExplorer graph={artifact.graph} onInvestigate={investigate} />}
       {error && (
         <p role="alert" className="px-6 pb-4 text-xs text-error">
           {error}
         </p>
       )}
+    </>
+  );
+
+  return (
+    <article className="overflow-hidden rounded-2xl border border-border bg-surface-raised">
+      {header(false)}
+      {body}
+      <dialog
+        ref={dialog}
+        onClose={() => setExpanded(false)}
+        aria-label={copy.fullScreen}
+        className="fixed inset-0 m-0 h-dvh max-h-none w-full max-w-none overflow-hidden border-none bg-surface p-0 text-foreground"
+      >
+        {expanded && (
+          <div className="flex h-full flex-col">
+            {header(true)}
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+              <div className="mx-auto w-full max-w-7xl pb-8">
+                {question && <p className="whitespace-pre-wrap break-words border-b border-border px-6 py-4 text-sm text-muted">{question}</p>}
+                {body}
+              </div>
+            </div>
+          </div>
+        )}
+      </dialog>
     </article>
   );
 }

@@ -110,6 +110,17 @@ export default async function smoke(
       .click();
     await page.waitForURL(`**/dashboard/bot/${id}`);
     await page.getByRole("heading", { name: "Evidence overview" }).waitFor();
+    const expand = page.getByRole("button", { name: "Open response full screen" });
+    await expand.click();
+    const fullScreen = page.getByRole("dialog", { name: "Research response" });
+    await fullScreen.getByRole("heading", { name: "Evidence overview" }).waitFor();
+    const bounds = await fullScreen.boundingBox();
+    const viewport = page.viewportSize();
+    assert.equal(bounds.width, viewport.width);
+    assert.equal(bounds.height, viewport.height);
+    await page.keyboard.press("Escape");
+    await fullScreen.waitFor({ state: "hidden" });
+    assert.equal(await expand.evaluate((element) => document.activeElement === element), true);
     await page.getByRole("button", { name: "Rename investigation" }).click();
     await page
       .getByRole("textbox", { name: "Rename investigation" })
@@ -143,7 +154,7 @@ export default async function smoke(
           (r) => r.headers().authorization === "Bearer fixture-only-token",
         ),
     );
-    return "Responsive layouts, suggestions, conversation CRUD, follow-up, and authenticated server-only requests passed.";
+    return "Responsive layouts, full-screen responses, suggestions, conversation CRUD, follow-up, and authenticated server-only requests passed.";
   } finally {
     page.off("request", onRequest);
     await page.unrouteAll({ behavior: "wait" });
