@@ -6,12 +6,13 @@ import { Download, Network } from "lucide-react";
 import type { EvidenceGraph, EvidenceNode } from "@/lib/research-graph";
 import { safeUrl } from "@/lib/workspace";
 import { pushToast } from "@/lib/toasts";
+import ComparisonGraph from "./ComparisonGraph";
 
 const copy = {
   title: "Evidence workspace",
   subtitle: "Trace a finding, inspect its sources, and decide what to verify next.",
   note: "Citation edges record retrieved references. Claim relationships are model inferences, not observed propagation or proof of causation. Node size does not indicate credibility.",
-  graph: "Evidence graph", gaps: "Verification queue", download: "Export graph JSON",
+  inference: "Inference graph", graph: "Source network", gaps: "Verification queue", download: "Export graph JSON",
   search: "Find a claim or source", empty: "No matching nodes. Clear the search to inspect all evidence.",
   noGaps: "No citation gaps detected. Review factual support and source independence manually.",
   legend: "News · left / Findings · centre / Social · right. Select a node to inspect its connections.",
@@ -22,9 +23,11 @@ const kindClass: Record<EvidenceNode["kind"], string> = {
 };
 
 export default function EvidenceExplorer({ graph, onInvestigate }: { graph: EvidenceGraph; onInvestigate: (question: string) => void }) {
-  const [selectedId, setSelectedId] = useState(graph.nodes[0]?.id || "");
+  const comparisons = graph.nodes.filter(node => node.kind === "comparison" && node.newsPosition !== undefined)
+    .sort((a, b) => Number(a.status === "insufficient_evidence") - Number(b.status === "insufficient_evidence"));
+  const [selectedId, setSelectedId] = useState(comparisons[0]?.id || graph.nodes[0]?.id || "");
   const [search, setSearch] = useState("");
-  const [tab, setTab] = useState("graph");
+  const [tab, setTab] = useState(comparisons.length ? "inference" : "graph");
   const marker = useId();
   const selected = graph.nodes.find(node => node.id === selectedId);
   const connected = graph.edges.filter(edge => edge.source === selectedId || edge.target === selectedId);
@@ -53,9 +56,11 @@ export default function EvidenceExplorer({ graph, onInvestigate }: { graph: Evid
       </header>
       <p className="mt-3 text-xs leading-6 text-muted">{graph.nodes.length} nodes · {graph.edges.length} directed links · {graph.gaps.length} verification tasks</p>
       <div className="my-4 flex flex-wrap gap-2" aria-label="Workspace views">
-        {(["graph", "gaps"] as const).map(value => <button key={value} type="button" aria-pressed={tab === value} onClick={() => setTab(value)} className={`rounded-lg px-3 py-2 text-xs transition ${tab === value ? "bg-foreground text-background" : "bg-surface-raised text-muted"}`}>{copy[value]}</button>)}
+        {(["inference", "graph", "gaps"] as const).filter(value =>
+          (value !== "inference" || comparisons.length) && (value !== "gaps" || graph.state !== "incomplete")
+        ).map(value => <button key={value} type="button" aria-pressed={tab === value} onClick={() => setTab(value)} className={`rounded-lg px-3 py-2 text-xs transition ${tab === value ? "bg-foreground text-background" : "bg-surface-raised text-muted"}`}>{copy[value]}</button>)}
       </div>
-      {tab === "gaps" ? (
+      {tab === "inference" ? <ComparisonGraph graph={graph} findings={comparisons} /> : tab === "gaps" ? (
         <ul className="space-y-3">
           {!graph.gaps.length && <li className="text-sm text-muted">{copy.noGaps}</li>}
           {graph.gaps.map((gap, index) => <li key={index} className="rounded-lg border border-border bg-surface-raised p-4">

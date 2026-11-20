@@ -8,13 +8,17 @@ const httpClient = axios.create({
     baseURL: HTTP_SERVER_BASE_URL,
 });
 let signingOutAfterUnauthorized = false;
+let sessionRequest: ReturnType<typeof getSession> | undefined;
 
 httpClient.interceptors.request.use(async (config) => {
     if (typeof window === "undefined") {
         return config;
     }
 
-    const session = await getSession();
+    sessionRequest ??= getSession({ broadcast: false }).finally(() => {
+        sessionRequest = undefined;
+    });
+    const session = await sessionRequest;
     const accessToken = session?.accessToken;
 
     if (accessToken) {

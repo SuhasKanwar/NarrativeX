@@ -4,6 +4,9 @@ export type EvidenceNode = {
   label: string;
   detail: string;
   status?: string;
+  newsPosition?: string;
+  socialPosition?: string;
+  nextCheck?: string;
   url?: string;
   publisher?: string;
   publishedAt?: string;
@@ -12,6 +15,7 @@ export type EvidenceNode = {
 export type EvidenceEdge = { source: string; target: string; relation: string; detail?: string; verification?: string };
 export type EvidenceGraph = {
   version: 1;
+  state?: "incomplete";
   nodes: EvidenceNode[];
   edges: EvidenceEdge[];
   gaps: { node: string; reason: string; action: string }[];
@@ -31,7 +35,8 @@ export function readResearchArtifact(content: string): { report: string; graph: 
     const text = (value: unknown) => typeof value === "string";
     if (!graph.nodes.every((node: EvidenceNode) => node && text(node.id) && text(node.label) &&
         text(node.detail) && ["claim", "comparison", "news", "social"].includes(node.kind) &&
-        [node.status, node.url, node.publisher, node.publishedAt].every(value => value === undefined || text(value)) &&
+        [node.status, node.url, node.publisher, node.publishedAt, node.newsPosition, node.socialPosition, node.nextCheck]
+          .every(value => value === undefined || text(value)) &&
         (node.passages === undefined || (Array.isArray(node.passages) && node.passages.every(p => p &&
           text(p.url) && text(p.quote) && ["supports", "contradicts", "context"].includes(p.stance)))))) {
       return { report, graph: null };

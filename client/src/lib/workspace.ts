@@ -82,7 +82,7 @@ export const workspace = {
       await http.post<Envelope<Chat[]>>(
         `/api/conversation/chat/${encodeURIComponent(id)}`,
         { content },
-        { timeout: 210000 },
+        { timeout: 240000 },
       )
     ).data.data,
   exportPdf: async (id: string) =>

@@ -59,11 +59,21 @@ const copy = {
   waiting: "Your brief will appear here when the research finishes.",
 };
 
-function ResearchBrief({ message, conversationId, onInvestigate }: { message: Chat; conversationId?: string; onInvestigate: (question: string) => void }) {
+function ResearchBrief({ message, conversationId, question, onInvestigate }: {
+  message: Chat;
+  conversationId?: string;
+  question?: string;
+  onInvestigate: (question: string) => void;
+}) {
   const [copied, setCopied] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState("");
   const artifact = readResearchArtifact(message.content || "");
+  const incomplete = artifact.graph?.state === "incomplete" ||
+    /^# (Retrieved sources|Research could not be completed)\b/.test(artifact.report);
+  const detailsStart = artifact.graph && !incomplete ? artifact.report.indexOf("\n## News vs social") : -1;
+  const overview = detailsStart >= 0 ? artifact.report.slice(0, detailsStart) : "";
+  const report = detailsStart >= 0 ? artifact.report.slice(detailsStart) : artifact.report;
   return (
     <article className="overflow-hidden rounded-2xl border border-border bg-surface-raised">
       <header className="flex items-center justify-between border-b border-border px-6 py-4">
@@ -118,11 +128,20 @@ function ResearchBrief({ message, conversationId, onInvestigate }: { message: Ch
           </button>
         </div>
       </header>
-      {artifact.graph && <EvidenceExplorer graph={artifact.graph} onInvestigate={onInvestigate} />}
+      {overview && <div className="space-y-3 px-6 pt-6 text-sm leading-7 [&_h1]:font-editorial [&_h1]:text-3xl"
+        dangerouslySetInnerHTML={{ __html: md.render(overview) }} />}
+      {incomplete && question && (
+        <button type="button" onClick={() => onInvestigate(question)}
+          className="mx-6 mt-5 rounded-lg border border-accent px-3 py-2 text-xs font-semibold hover:bg-surface">
+          Retry this question
+        </button>
+      )}
+      {!incomplete && artifact.graph && <EvidenceExplorer graph={artifact.graph} onInvestigate={onInvestigate} />}
       <div
         className="max-w-none break-words p-6 text-sm leading-7 [&_a]:text-focus [&_a]:underline [&_a]:underline-offset-4 [&_blockquote]:my-4 [&_blockquote]:border-l-2 [&_blockquote]:border-accent [&_blockquote]:pl-4 [&_h1]:mb-5 [&_h1]:font-editorial [&_h1]:text-3xl [&_h2]:my-5 [&_h2]:text-xl [&_h3]:my-4 [&_h3]:font-semibold [&_li]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-3 [&_pre]:overflow-auto [&_pre]:rounded-lg [&_pre]:bg-surface [&_pre]:p-4 [&_table]:my-5 [&_table]:block [&_table]:w-max [&_table]:min-w-full [&_table]:max-w-full [&_table]:overflow-x-auto [&_table]:border-collapse [&_table]:text-left [&_thead]:bg-surface [&_tbody_tr:nth-child(even)]:bg-surface/50 [&_td]:max-w-[420px] [&_td]:whitespace-normal [&_td]:border [&_td]:border-border [&_td]:align-top [&_td]:p-3 [&_th]:whitespace-nowrap [&_th]:border [&_th]:border-border [&_th]:p-3 [&_ul]:list-disc [&_ul]:pl-5"
-        dangerouslySetInnerHTML={{ __html: md.render(artifact.report) }}
+        dangerouslySetInnerHTML={{ __html: md.render(report) }}
       />
+      {incomplete && !!artifact.graph?.nodes.length && <EvidenceExplorer graph={artifact.graph} onInvestigate={onInvestigate} />}
       {error && (
         <p role="alert" className="px-6 pb-4 text-xs text-error">
           {error}
@@ -163,7 +182,8 @@ export default function ResearchStudio({
   const [title, setTitle] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [revision, setRevision] = useState(0);
-  const end = useRef<HTMLDivElement>(null);
+  const latestTurn = useRef<HTMLDivElement>(null);
+  const pendingTurn = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
   const current = history.find((item) => item.id === conversationId);
 
@@ -203,14 +223,15 @@ export default function ResearchStudio({
     return () => controller.abort();
   }, [conversationId, revision]);
   useEffect(() => {
-    if (messages.length || busy)
-      end.current?.scrollIntoView({
+    const target = pendingQuestion ? pendingTurn.current : latestTurn.current;
+    if (target)
+      target.scrollIntoView({
         behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
           ? "instant"
           : "smooth",
-        block: "end",
+        block: "start",
       });
-  }, [messages.length, busy]);
+  }, [messages.length, pendingQuestion]);
 
   async function send() {
     const question = draft.trim();
@@ -226,7 +247,10 @@ export default function ResearchStudio({
       setMessages((previous) => [...previous, ...response]);
       setPendingQuestion("");
       if (!conversationId) router.replace(`/dashboard/bot/${id}`);
-      else setRevision((n) => n + 1);
+      else setHistory(previous => {
+        const updated = previous.find(item => item.id === id);
+        return updated ? [{ ...updated, lastUpdated: new Date().toISOString() }, ...previous.filter(item => item.id !== id)] : previous;
+      });
     } catch {
       setError(copy.sendError);
       setDraft(question);
@@ -408,14 +432,18 @@ export default function ResearchStudio({
                     </p>
                   </div>
                 ) : (
-                  <ResearchBrief message={message} conversationId={conversationId} onInvestigate={question => { setDraft(question.slice(0, 2000)); input.current?.focus(); }} />
+                  <div ref={index === messages.length - 1 ? latestTurn : undefined}>
+                    <ResearchBrief message={message} conversationId={conversationId}
+                      question={messages[index - 1]?.sender === "user" ? messages[index - 1]?.content ?? undefined : undefined}
+                      onInvestigate={question => { setDraft(question.slice(0, 2000)); input.current?.focus(); }} />
+                  </div>
                 )}
               </Reveal>
             ))}
           </div>
         )}
         {busy && pendingQuestion && (
-          <div className="space-y-6 pb-6 motion-safe:animate-enter">
+          <div ref={pendingTurn} className="space-y-6 pb-6 motion-safe:animate-enter">
             <div className="border-l-2 border-accent pl-5">
               <p className="text-[9px] tracking-[.2em] text-muted">
                 {copy.question}
@@ -439,7 +467,6 @@ export default function ResearchStudio({
             </div>
           </div>
         )}
-        <div ref={end} />
         </div>
         <form
           onSubmit={(e) => {
