@@ -25,6 +25,7 @@ import WorldWatch from "./WorldWatch";
 
 type Feed<T> = { data: T[]; loading: boolean; error?: string };
 const initial = { data: [], loading: true };
+const newsProviderLabel = /^(?:NewsAPI|Google News(?: API| RSS)?)$/i;
 const copy = {
   emptyNews: "No headlines match this topic. Try a broader search.",
   emptySocial: "No public posts found for this topic.",
@@ -56,7 +57,6 @@ export default function IntelligenceDesk() {
   const [events, setEvents] = useState<Feed<GeoEvent>>(initial);
   const [social, setSocial] = useState<Feed<Post>>(initial);
   const [partial, setPartial] = useState<string[]>([]);
-  const [provider, setProvider] = useState("");
   const topic = query || category.query;
   const refresh = () => setRevision((n) => n + 1);
 
@@ -64,10 +64,7 @@ export default function IntelligenceDesk() {
     const controller = new AbortController();
     workspace
       .news(topic, controller.signal)
-      .then((result) => {
-        setNews({ data: result.articles, loading: false });
-        setProvider(result.provider || "");
-      })
+      .then(({ articles }) => setNews({ data: articles, loading: false }))
       .catch(() => {
         if (!controller.signal.aborted)
           setNews({ data: [], loading: false, error: copy.newsError });
@@ -226,10 +223,7 @@ export default function IntelligenceDesk() {
       )}
       <div className="grid items-start gap-7 xl:grid-cols-[minmax(0,1fr)_350px]">
         <section>
-          <div className="mb-5 flex items-center justify-between">
-            <h2 className="text-xl tracking-tight">{desk.newsTitle}</h2>
-            <span className="text-[10px] text-muted">{provider}</span>
-          </div>
+          <h2 className="mb-5 text-xl tracking-tight">{desk.newsTitle}</h2>
           {news.loading || news.error || !news.data.length ? (
             <FeedState
               loading={news.loading}
@@ -258,11 +252,13 @@ export default function IntelligenceDesk() {
                       />
                     )}
                     <div className="flex flex-1 flex-col p-6">
-                      <div className="flex items-center justify-between gap-3 text-[10px] text-muted">
-                        <span className="truncate uppercase tracking-wide">
-                          {article.source}
-                        </span>
-                        <span className="shrink-0">
+                      <div className="flex items-center gap-3 text-[10px] text-muted">
+                        {article.source && !newsProviderLabel.test(article.source.trim()) && (
+                          <span className="truncate uppercase tracking-wide">
+                            {article.source}
+                          </span>
+                        )}
+                        <span className="ml-auto shrink-0">
                           {dateLabel(article.publishedAt)}
                         </span>
                       </div>
