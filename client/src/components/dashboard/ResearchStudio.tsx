@@ -511,16 +511,24 @@ export default function ResearchStudio({
           </div>
         )}
         </div>
+        {error && (
+          <p
+            role="alert"
+            className="mb-2 shrink-0 rounded-xl bg-error-surface px-3 py-2 text-xs leading-5 text-error"
+          >
+            {error}
+          </p>
+        )}
         <form
           onSubmit={(e) => {
             e.preventDefault();
             void send();
           }}
-          className="z-10 shrink-0 rounded-2xl border border-border bg-surface-raised/95 p-3 shadow-xl shadow-dark-surface/5 backdrop-blur-xl transition duration-300 focus-within:border-muted focus-within:shadow-2xl sm:p-4"
+          className="z-10 shrink-0 rounded-2xl border border-border bg-surface-raised/95 px-3 py-2 shadow-xl shadow-dark-surface/5 backdrop-blur-xl transition duration-300 focus-within:border-muted focus-within:shadow-2xl"
         >
           <label
             htmlFor="research-question"
-            className="mb-3 block text-[9px] tracking-[.18em] text-muted"
+            className="mb-1 block text-[9px] tracking-[.18em] text-muted"
           >
             {conversationId ? copy.followup : copy.inputLabel}
           </label>
@@ -553,9 +561,9 @@ export default function ResearchStudio({
             }}
             placeholder={bot.placeholder}
             disabled={busy || loading || Boolean(loadError)}
-            className="w-full resize-none bg-transparent text-sm leading-5 outline-none placeholder:text-muted"
+            className="block min-h-5 max-h-20 w-full resize-none overflow-y-auto bg-transparent text-sm leading-5 outline-none field-sizing-content placeholder:text-muted"
           />
-          <div className="flex items-center justify-between gap-4 border-t border-border pt-3">
+          <div className="mt-1 flex items-center justify-between gap-4 border-t border-border pt-1.5">
             <span className="text-[10px] text-muted">
               {draft.length} / 2000
             </span>
@@ -563,7 +571,7 @@ export default function ResearchStudio({
               type="submit"
               disabled={busy || loading || Boolean(loadError) || !draft.trim()}
               aria-label={copy.submit}
-              className="group flex items-center gap-3 rounded-xl bg-dark-surface px-5 py-3 text-xs text-inverse transition hover:bg-dark-border disabled:opacity-50"
+              className="group flex min-h-9 items-center gap-2 rounded-xl bg-dark-surface px-3 text-xs text-inverse transition hover:bg-dark-border disabled:opacity-50"
             >
               {copy.submit}
               <Send
@@ -573,15 +581,7 @@ export default function ResearchStudio({
             </button>
           </div>
         </form>
-        {error && (
-          <p
-            role="alert"
-            className="mt-4 rounded-xl bg-error-surface p-4 text-xs leading-6 text-error"
-          >
-            {error}
-          </p>
-        )}
-        <p className="mt-4 text-center text-[10px] leading-5 text-muted">
+        <p className="mt-1 shrink-0 text-center text-[10px] leading-4 text-muted">
           {bot.notice}
         </p>
       </div>

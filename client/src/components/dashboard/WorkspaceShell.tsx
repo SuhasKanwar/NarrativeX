@@ -121,7 +121,7 @@ export default function WorkspaceShell({
         </header>
         <main
           id="workspace"
-          className={`${researchStudio ? "mx-auto flex min-h-0 w-full max-w-400 flex-1 flex-col overflow-hidden p-3 sm:p-5 md:p-6" : "mx-auto max-w-400 p-5 md:p-9"}`}
+          className={`${researchStudio ? "mx-auto flex min-h-0 w-full max-w-400 flex-1 flex-col overflow-hidden px-3 pt-3 pb-2 sm:px-5 sm:pt-5 md:px-6 md:pt-6" : "mx-auto max-w-400 p-5 md:p-9"}`}
         >
           {children}
         </main>
