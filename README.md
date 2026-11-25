@@ -1,6 +1,8 @@
 # NarrativeX
 
-NarrativeX is a web application for investigating how a story is described across news reporting and public social conversations. It collects source material, extracts claims, compares their framing and evidence, and presents a cited research brief with evaluation details and source links.
+NarrativeX is a research workspace for comparing how news outlets and public social posts describe the same story. Ask a question to get a cited brief, inspect competing claims in an evidence graph, and follow how the framing changes across dated posts. Investigations are saved and can be exported for further review.
+
+[Features](#main-capabilities) · [Research methods](#research-workspace) · [Evaluation](#evaluation-metrics) · [Local setup](#local-development) · [Verification](#verification) · [Roadmap](#research-roadmap)
 
 ## Project objective
 
@@ -8,43 +10,46 @@ The system is designed to help researchers, journalists, and curious readers:
 
 - Search current reporting and public posts about a question or topic.
 - Compare news and social narratives using closely aligned search terms.
-- Identify claims, supporting and counter evidence, relationships, and unknowns.
-- Track differences in emphasis and reported positions without treating popularity or repetition as proof.
+- Identify claims, supporting and counter-evidence, relationships, and unanswered questions.
+- Trace how emphasis and reported positions change across dated sources.
 - Inspect the original sources, the retrieval coverage, and the evaluation method behind each brief.
 - Save investigations and export their reports as PDFs.
 
-NarrativeX is an evidence exploration tool. Its generated assessment is a starting point for source review, not a final fact-check or a substitute for editorial judgment.
+Use a brief to locate original evidence and decide what to verify next. The strength of each conclusion depends on the sampled sources and the accuracy of the interpretation.
 
 ## Novelty and project contribution
 
 NarrativeX brings several parts of narrative research into one traceable workflow:
 
-1. **Paired cross-media collection.** A single model-planned search invokes both the news and social collection tools with the same topic. This keeps the comparison tied to a shared question rather than comparing unrelated search results.
-2. **Explicit comparison contract.** A completed comparison must describe both news and social positions and cite at least one retrieved URL from each source class. If a source class is unavailable, the system shows a limitation instead of inventing agreement or disagreement.
-3. **Evidence-first claim analysis.** The analysis separates claims from their evidence, records counter-evidence and uncertainty, and treats source content as untrusted input. Repetition and engagement are not considered independent confirmation.
-4. **Visible evaluation and provenance.** Research briefs show LLM-judge assessments, deterministic citation and coverage checks, retrieval diagnostics, provider limitations, and the evaluated source list. These are rendered in the chat and included in the PDF report.
-5. **Clear ownership boundaries.** The browser calls the NarrativeX API; the API handles authentication, storage, and provider access; the AI service plans and evaluates the investigation. Provider credentials and model calls stay server-side.
+1. **Paired cross-media collection.** One model-planned tool call chooses aligned queries and invokes both the news and social adapters. Evidence selection prioritizes a shared topic and reserves space for both media.
+2. **Excerpt-backed comparisons.** The model cites numbered passages from the retrieved sample. The evaluator resolves those IDs against the original text and requires evidence from each medium before retaining a cross-media conclusion.
+3. **Evidence graphs with verification actions.** Claim and comparison nodes lead back to cited passages. The verification queue turns missing citations, conflicting claims, and unresolved questions into follow-up investigations.
+4. **Cited post-to-post analysis.** The timeline orders posts using source-reported timestamps and attaches an earlier and later excerpt to each retained interpretation of a change or repetition.
+5. **Inspectable evaluation and provenance.** Each evaluated brief exposes its model judge, mathematical diagnostics, provider failures, and source list. The graph export carries the evidence snapshot and its hash. The PDF preserves the readable research record.
 
-These are the system's implementation contributions, not a claim that any individual technique is new to the research field.
+The project's contribution is the integration of paired retrieval, passage-level validation, visual evidence inspection, and export in one workflow.
 
 ## Main capabilities
 
-- Landing page and account access through credentials or Google OAuth.
-- Authenticated intelligence dashboard with news, public posts, and a geopolitical headlines view.
-- Research Studio with saved conversations, follow-up questions, source-linked reports, and PDF export.
-- News search through NewsAPI with Google News RSS fallback.
-- Public social search through Bluesky and Mastodon, with manual Reddit search and an optional approved Reddit adapter.
-- Partial-provider error reporting: successful sources can still be used when another provider fails.
-- Structured claim assessments, cross-media comparisons, claim relationships, propagation signals, and unknowns.
-- Chat toasts for API responses and clean sign-out when the server rejects an expired or invalid session.
+| Area | What you can do |
+| --- | --- |
+| **Public site** | Explore the product, research workflow, and data sources on a responsive landing page with scroll reveals. Loading, error, and missing-page screens cover navigation failures. |
+| **Account access** | Create an account or sign in with email and password. Google sign-in is available when configured. The workspace shows your name and profile image when available. A rejected session signs out and prompts you to sign in again. |
+| **Intelligence Desk** | Browse world affairs, economy, technology, climate, science, and health. Search headlines and public posts with one topic, refresh feeds, and start an investigation from a story. Headline cards display publisher, date, and image when available. |
+| **World Watch** | Explore geopolitical headlines on a map. Markers use the first matching keyword's city coordinates as a geographic cue for browsing. |
+| **Research Studio** | Start from a suggested prompt or a question of your own. Open, rename, and delete saved investigations. Press Enter to submit or Shift+Enter / Ctrl+Enter for a new line. Incomplete runs preserve the question and any returned evidence. |
+| **Research brief** | Read the news-versus-social findings, claim assessments, relationships, exact excerpts, evaluation tables, and retrieval limitations. Expand a response to full screen or copy the brief. API responses and clipboard actions provide toast feedback. |
+| **Evidence Workspace** | Switch between the inference graph, source network, and verification queue. Search and select evidence, inspect node and edge details, maximize the graph, and export its JSON. |
+| **Social narrative timeline** | Read dated posts in order, compare their framing, and review the two source excerpts behind each retained transition. The timeline remains visible in full-screen responses and readable exports. |
+| **PDF export** | Download the entire saved conversation from its title bar. The server formats headings, lists, tables, quotations, and source links into a paginated report. |
 
-The dashboard's geopolitical map currently places headlines using a keyword-to-city lookup. Those coordinates are illustrative matches, not verified event locations or geocoded facts.
+To try the research workflow, open **Research Studio** and ask “Compare news and social coverage of AI regulation. Where do the narratives agree, and how does the framing change across dated posts?” Read the brief, select a finding in the Evidence Workspace, inspect its quotes, then use the verification queue to draft a follow-up.
 
 ## Architecture
 
 | Application | Default port | Responsibilities |
 | --- | ---: | --- |
-| `client/` | `3000` | Next.js UI, NextAuth session, dashboard, chat, Markdown rendering, PDF download |
+| `client/` | `3000` | Next.js, React, Tailwind CSS, NextAuth, dashboard, chat, Markdown and graph rendering |
 | `server/` | `9000` | Bun/Express API, JWT authentication, PostgreSQL persistence through Prisma, provider adapters, in-memory cache |
 | `service/` | `8001` | FastAPI/LangGraph routing, model tool planning, structured analysis, evaluation and metrics |
 
@@ -53,77 +58,72 @@ flowchart LR
     U[User] --> C[Next.js client :3000]
     C -->|JWT authenticated API calls| S[Bun / Express :9000]
     S -->|Persist conversations and messages| DB[(PostgreSQL)]
-    S -->|News search| N[NewsAPI / Google News RSS]
-    S -->|Social search| P[Reddit / Bluesky / Mastodon]
+    S -->|News search| N["NewsAPI or Google News RSS"]
+    S -->|Social search| P["Bluesky, Mastodon, approved Reddit"]
     S -->|Internal query with delegated user token| A[FastAPI / LangGraph :8001]
-    A -->|Choose paired search parameters| M1[NVIDIA Nemotron Ultra]
+    A -->|Plan, analyze, judge, compare posts| M1[NVIDIA Nemotron Ultra]
     A -->|search_news + search_social_posts| S
-    A -->|Analyze evidence and judge result| M2[NVIDIA Nemotron Super]
     A -->|Embedding similarity| E[NVIDIA Nemotron Embed]
-    S -->|Cited brief and report data| C
+    A -->|General conversation| G[Groq GPT-OSS]
+    S -->|Saved briefs and PDF downloads| C
 ```
 
-The client does not call the AI service directly. Protected API routes are authenticated by the server, and conversation data is scoped to the signed-in user. The AI service uses the delegated token only when calling the server's protected news/social tools.
+Express is the browser's data API and owns authentication, provider access, and persistence. Protected routes verify the NarrativeX JWT. Conversation and report handlers scope database lookups to the authenticated user. FastAPI receives the research request from Express and uses the delegated JWT for its news and social tool calls. PostgreSQL stores users, conversations, and messages. Provider credentials remain in the backend services.
 
 ### Research request flow
 
-1. The client sends a question to the server's conversation endpoint.
-2. The server stores the user message and forwards the question, history, and delegated token to the AI service.
-3. A deterministic router selects general chat or research. Research-related questions take the evidence workflow; ordinary conversation uses Groq GPT-OSS.
-4. NVIDIA Nemotron Ultra makes one required call to `compare_news_and_social`, selecting the topic and bounded search parameters.
-5. The tool calls the server's `search_news` and `search_social_posts` endpoints concurrently with the aligned topic.
-6. The server validates, caches, and normalizes provider results. Provider errors are retained alongside successful results.
-7. NVIDIA Nemotron Super analyzes up to eight selected evidence documents, with news/social evidence balanced during selection. It returns structured comparisons, claims, source URLs, relationships, and uncertainty.
-8. A separate structured judge pass from Nemotron Super scores the analysis. Deterministic metrics validate citations and quantify coverage and retrieval characteristics.
-9. The server stores the brief in the conversation. The client renders its Markdown tables and source links and can request a PDF copy.
+1. **Save the question.** Express verifies the conversation owner and stores the user message before calling the AI service with the question and prior conversation text.
+2. **Route the request.** LangGraph uses a keyword-based router. General conversation goes to Groq GPT-OSS. Questions about evidence, news, social media, or timelines enter the research workflow.
+3. **Plan and retrieve.** Nemotron Ultra selects bounded parameters for `compare_news_and_social`. The tool calls `search_news` and `search_social_posts` concurrently through Express. Provider adapters normalize responses, cache results, and keep partial failures alongside successful results.
+4. **Select and analyze evidence.** The evaluator deduplicates source URLs and selects up to eight documents, aiming for a balance of news and social evidence. TF-IDF similarity helps rank relevance to the question and alignment with the other medium. Nemotron Ultra returns structured comparisons, claims, relationships, and unknowns using numbered excerpts.
+5. **Validate and evaluate.** The service resolves and checks excerpts, computes citation and retrieval metrics, runs a separate judge pass, and analyzes the selected dated social posts. The graph derives from validated evidence. When the model fails, the service can retry on a smaller sample or return source leads and any available timeline.
+6. **Store and review.** Express saves the generated message. Research Studio renders the report, timeline, evaluation tables, and evidence graph. Copy and PDF use the readable report text, and graph export uses the saved evidence artifact.
 
-The research tool boundary uses fixed server functions and validated parameters; the LLM does not receive credentials or call third-party providers directly.
+The planner supplies search parameters to fixed tools. Express validates the inputs before requests reach data providers.
 
-## Research workspace: evidence graphs and verification priorities
+## Research Workspace
 
-New research runs require exact, contiguous evidence excerpts for claims, comparisons, and claim relationships. The evaluator checks each quotation against the retrieved title/text and rejects absent quotations. Claims with missing required support or counter-evidence are marked insufficient; comparisons missing news or social excerpts are also marked insufficient. A quotation can be present while its interpretation is wrong: the stance and semantic relationship remain model assessments requiring review.
+### Claim analysis and cross-media comparisons
 
-The workspace inspector displays excerpts and distinguishes quotation-present citation edges, citation-only edges, and inferred claim relationships. The report includes a news/social comparison matrix and evidence ledger; these readable sections also reach PDF exports. Graph JSON exports retain the selected source snapshot, generation timestamp, query, evaluation model, analysis, evaluation diagnostics, and SHA-256 of the source snapshot. This preserves the material used in that run, not full articles beyond what the source API supplied. Historical briefs retain their original evidence contract.
+Each brief compares the news and social positions on a shared topic. The model can report agreement, partial agreement, disagreement, a difference in emphasis, or insufficient evidence. It also assesses individual claims as supported, disputed, misleading, unverified, or insufficiently evidenced within the selected sample.
 
-To run the provider-backed diagnostic from `service`, execute `python verify_research.py > research-proof.json` using the configured Python environment and NVIDIA credentials. Its five versioned synthetic cases cover agreement, negation, numerical conflict, scope conflict, and unrelated topics. It scores the first comparison per case and reports precision, recall, and macro-F1 for the reference labels. It does not qualify retrieval, real-world accuracy, or all possible relationship types. Provider failures exit nonzero, mark the run incomplete, and publish no aggregate score. Source passages are untrusted input even when quotation presence is verified.
+The evaluator resolves numbered passages to exact, contiguous excerpts in retrieved titles and text. It discards absent quotations, downgrades claims missing the required support or counter-evidence, and marks comparisons with a missing media type as insufficient. An exact match verifies attribution. Researchers can use the quoted context to assess whether it justifies the model's stance or relationship.
 
-Verification on 2026-11-16: all 11 service unit tests passed, including fabricated-quotation rejection, insufficient cross-media evidence, invalid relationship endpoints, and metric scoring. The client artifact test, ESLint, and production build passed. A live NVIDIA diagnostic attempt failed with HTTP 404 for the configured evaluation model before any cases completed; live inference accuracy remains unqualified. Browser interactions and full authenticated client/server/provider execution still require verification. A larger independently annotated corpus, human semantic review, citation correctness/completeness evaluation, and longitudinal propagation validation remain release qualification work.
-
-New completed research briefs include an interactive **Evidence workspace** above the written report:
+### Evidence graph and verification queue
 
 - **Trace evidence:** news and social source nodes connect to claim and comparison nodes through citation edges. Selecting a node shows its full text or rationale, source attribution, timestamp, and original URL.
 - **Inspect disagreement:** directed claim relationships show the model's rationale. Counter-citations and contradiction links use dashed edges. Relationship labels and directions are available in the inspector and keyboard-accessible node list.
 - **Prioritize verification:** a deterministic queue identifies uncited claims, claims citing only one media class, missing counter-evidence, comparisons missing valid news/social citations, and model-inferred contradictions to review. A queue action drafts a follow-up question in the existing composer for the researcher to review and submit.
-- **Export for analysis:** download the graph as JSON containing versioned nodes, edges, and verification tasks. This can be used for external network analysis or manual review.
+- **Export for analysis:** download graph JSON with nodes, edges, verification tasks, selected source documents, the query, generation time, and a SHA-256 hash of the evidence snapshot. Completed analyses also retain the model ID and evaluation details.
 
-The graph is built from structured analysis and the exact retrieved URLs, without another LLM call. Unknown source URLs and dangling claim relationships are excluded. A missing counter-citation describes the retrieved sample only; it does not prove that no contrary evidence exists. Citation edges record references rather than semantic entailment. Claim relationships are model inferences and do not demonstrate influence, transmission, causation, or political affiliation.
+Graph construction uses the validated structured analysis and retrieved URLs. Citation edges connect findings to retrieved references. Claim relationships express the model's interpretation. Establishing influence, transmission, causation, or political affiliation requires additional evidence.
 
-The design draws on [evidence-graph reasoning for fact checking](https://aclanthology.org/2020.acl-main.549/) and the importance of attribution and derivation described by [W3C PROV-O](https://www.w3.org/TR/2013/PR-prov-o-20130312/). This is an inspection interface over the existing evaluator, not an implementation of that paper's trained graph model or a PROV-O RDF exporter.
+The design draws on research into evidence-graph reasoning for fact-checking and on the provenance concepts of attribution and derivation. [Semantic-level graph reasoning](https://aclanthology.org/2020.acl-main.549/) · [W3C PROV-O](https://www.w3.org/TR/prov-o/)
 
-For backward-compatible persistence, the brief stores a version-1 graph artifact in a `narrativex-graph` Markdown fence. The client validates that artifact before rendering it. Copying the brief, exporting its PDF, and sending prior messages to the model omit the storage block; the human-readable verification priorities remain in the report. Older saved briefs continue to display normally and acquire a graph only when a new analysis is generated. Graphs currently describe one report's selected evidence, not an accumulated longitudinal corpus.
+The server saves a version-1 graph artifact in a `narrativex-graph` Markdown fence. The client validates it before rendering the graph. Copy, PDF export, and model history use the readable text. Older messages without an artifact render as text.
 
 ### Social narrative timeline
 
-Ask “How did the narrative about AI regulation change across recent social posts?” Each new research brief orders its selected social evidence by source-reported publication time in UTC. The model compares adjacent posts on the same issue and identifies repetition, added detail, reframing, or a challenge. Each retained interpretation links to the posts and shows an exact excerpt from each. The panel reports how many selected posts have usable times and text, and how many adjacent pairs support a comparison. Tied timestamps do not establish a sequence between those posts. The timeline also appears in copied briefs and PDF exports.
+The timeline takes the social posts from the brief's selected evidence and orders usable timestamps in UTC. It compares adjacent posts on the same issue and labels repetition, added detail, reframing, or a challenge. Each retained result includes the exact earlier and later excerpts and links to the original posts. Equal timestamps leave the relative order unknown. Coverage counts show how many selected posts had usable timestamps and text and how many adjacent pairs were interpreted.
 
-The design draws on sequential social-media stance analysis and longitudinal semantic-shift research. NarrativeX uses a bounded, query-selected sample, so the results describe differences between the retrieved posts. Estimating population trends or tracing transmission would require broader dated sampling or explicit interaction records. [Zubiaga et al.](https://aclanthology.org/C16-1230/) [Wang et al.](https://aclanthology.org/2024.findings-emnlp.193/)
+The chronological list remains available if the interpretation call fails. It can also render when the news side is missing and the social side still has dated evidence. The timeline uses a bounded, query-selected sample. Estimating population trends or tracing transmission requires broader dated sampling or explicit interaction records. [Sequential stance analysis](https://aclanthology.org/C16-1230/) · [Longitudinal semantic analysis](https://aclanthology.org/2024.findings-emnlp.193/)
 
 ## Models
 
-Model IDs are kept in [`service/config/models.py`](service/config/models.py), not environment variables.
+Model IDs are defined in [`service/config/models.py`](service/config/models.py). Provider keys are configured in the service environment.
 
 | Role | Model | Use |
 | --- | --- | --- |
 | Research search planner | `nvidia/nemotron-3-ultra-550b-a55b` | Chooses the aligned topic and bounded parameters for the paired tools |
-| Evidence analyzer and judge | `nvidia/nemotron-3-ultra-550b-a55b` | Produces structured findings, then scores groundedness, relevance, completeness, source quality, and comparison quality |
+| Evidence analyzer, judge, and timeline | `nvidia/nemotron-3-ultra-550b-a55b` | Produces structured findings, separately evaluates the brief, and classifies post-to-post transitions |
 | Embeddings | `nvidia/nemotron-3-embed-1b` | Measures query/source and claim/evidence cosine similarity |
 | General conversation | `openai/gpt-oss-120b` through Groq | Answers requests routed as general conversation without retrieval |
 
-When the embedding provider is unavailable, local TF-IDF vectors are used as a fallback and the active backend is shown in the report. Cosine similarity remains a relevance diagnostic; it does not prove entailment, factual accuracy, or truth.
+When the embedding provider is unavailable, the metrics service uses local TF-IDF and identifies the active backend in the report. Cosine similarity measures topical alignment. Entailment and accuracy require a separate assessment.
 
 ## Evaluation metrics
 
-Each completed research brief contains an **Evaluation** table and a separate **Evidence diagnostics** table. The tables are part of the saved Markdown report, so they appear in both chat and PDF output. When evaluation cannot complete, the brief still displays the evaluation measures as unavailable.
+Each evaluated research brief contains an **Evaluation** table and an **Evidence diagnostics** table in chat and PDF. If the judge fails, the brief retains deterministic metrics and identifies model scores as unavailable. If the analysis itself fails, the fallback brief explains the failure and lists available research leads.
 
 ### LLM-judge assessments
 
@@ -137,7 +137,7 @@ All judge scores range from `0` to `1`. They are model estimates based on the re
 | Source quality | The usefulness and reliability of the retrieved sources |
 | Comparison quality | Whether both news and social positions are represented accurately and cited |
 
-The judge is a separate evaluation pass, not an independent external fact-checker. Its score should be read with the citations and judge notes.
+The judge is a separate pass using the configured analysis model. Read its scores alongside the excerpts and judge notes.
 
 ### Deterministic quality checks
 
@@ -145,9 +145,9 @@ The judge is a separate evaluation pass, not an independent external fact-checke
 | --- | --- | --- |
 | Claim citation validity | Valid claim/counter-evidence URLs ÷ all cited claim URLs | Whether claim citations point to documents in the evaluated set |
 | Comparison citation validity | Comparisons with valid news and social URLs ÷ all comparisons | Whether each cross-media comparison is backed by both source classes |
-| Claim evidence coverage | Claims with at least one valid citation ÷ all claims | Citation coverage, not proof that the claim is true |
-| Cross-media coverage | `1` when both news and social are in the evaluated set; otherwise `0` | Confirms that the comparison had both kinds of evidence |
-| Cross-media balance | `2 × min(news count, social count) ÷ total evaluated documents` | `1` means an even sample; this describes sample balance, not quality |
+| Claim evidence coverage | Claims with at least one valid citation ÷ all claims | Fraction of claims connected to retrieved evidence |
+| Cross-media coverage | `1` when both news and social are in the evaluated set, otherwise `0` | Presence of both media types in the sample |
+| Cross-media balance | `2 × min(news count, social count) ÷ total evaluated documents` | `1` indicates an even split between the two media |
 
 The internal **Weighted quality score** combines these judge and deterministic measures as follows:
 
@@ -162,21 +162,21 @@ The internal **Weighted quality score** combines these judge and deterministic m
 + 10% comparison citation validity
 ```
 
-This is a project-level summary score, not a calibrated probability, benchmark score, or factual accuracy rating.
+Citation and coverage ratios use zero when their denominator is empty. The weighted score is a per-brief composite of the checks above. Interpreting it as a probability or measuring factual accuracy would require calibration and reference labels.
 
 ### Evidence diagnostics
 
 | Diagnostic | Calculation/use | Important limit |
 | --- | --- | --- |
-| Query/evidence cosine | Mean cosine similarity between the request and evaluated documents | Similarity indicates topical alignment, not factual support |
+| Query/evidence cosine | Mean cosine similarity between the request and evaluated documents | Measures topical alignment |
 | News/query and social/query cosine | Mean request-to-document cosine, shown separately by media type | Helps reveal topical imbalance between the two evidence groups |
-| Claim/evidence cosine | Mean best cosine between a claim and its cited/counter-cited documents | Embedding similarity is not an entailment test; the backend is identified in the UI |
-| Source diversity | Normalized Shannon entropy across source labels | Describes variety, not source independence or quality |
+| Claim/evidence cosine | Mean of each cited claim's best cosine against its supporting or counter-cited documents | The brief identifies the vector backend |
+| Source diversity | Normalized Shannon entropy across source-type and publisher labels | Describes variety in the sampled labels |
 | Document redundancy | Mean pairwise vector cosine between documents | Similar articles can be legitimate corroboration or duplicate coverage |
-| Multi-source citation rate | Share of claims citing at least two distinct source labels | Does not establish that sources are editorially independent |
+| Multi-source citation rate | Share of claims with supporting citations from at least two distinct source labels | Independence requires checking the original reporting |
 | Temporal span | Time between the oldest and newest evaluated timestamps | Describes the sample window; missing timestamps reduce its coverage |
 
-Accuracy and retrieval recall are intentionally not reported per request: they require a gold answer or reference set, which a live user question does not provide. A separate benchmark dataset with human-reviewed references is needed to measure those across versions. The current cosine and lexical retrieval-ranking functions are diagnostics, not substitutes for reference-based evaluation.
+The timeline reports dated-post and interpreted-pair counts separately from the research quality score. Accuracy, retrieval recall, and semantic correctness across versions require a human-reviewed reference set.
 
 Evaluation practice follows the distinction between reference-based accuracy and reference-free groundedness/relevance assessments described in [NVIDIA NeMo Agent Toolkit](https://docs.nvidia.com/nemo/agent-toolkit/latest/workflows/evaluate.html) and [RAGAS metric guidance](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/).
 
@@ -184,35 +184,39 @@ Evaluation practice follows the distinction between reference-based accuracy and
 
 | Source | Current access method | Credentials |
 | --- | --- | --- |
-| NewsAPI | `/v2/everything` search | `NEWS_API_KEY`; Google News RSS is used as fallback |
-| Reddit | Manual topic search by default. OAuth application-only search for approved integrations. | For approved access only, set `REDDIT_APPROVED_ACCESS=true`, the Reddit client ID and secret, and a descriptive user agent. |
-| Bluesky | Public post search endpoint | No API key configured by this integration |
-| Mastodon | `mastodon.social` hashtag discovery and public hashtag timelines | No API key for the tested public flow |
+| NewsAPI | Search `/v2/everything`. The adapter returns available headlines, descriptions, dates, publishers, and images. [NewsAPI documentation](https://newsapi.org/docs/endpoints/everything) | `NEWS_API_KEY` |
+| Google News RSS | Fallback when the NewsAPI key is missing or its search fails or returns no articles | Public RSS |
+| Bluesky | Latest-first public post search through `app.bsky.feed.searchPosts`. [Bluesky search contract](https://github.com/bluesky-social/bsky/blob/main/lexicons/app/bsky/feed/searchPosts.json) | Public endpoint |
+| Mastodon | Hashtag discovery and public hashtag timelines on `mastodon.social`. [Mastodon timeline API](https://docs.joinmastodon.org/methods/timelines/#tag) | Public endpoints on the configured instance |
+| Reddit | Manual topic search from the dashboard. An optional application-only OAuth adapter runs with approved access. [Reddit Data API access](https://support.reddithelp.com/hc/en-us/articles/14945211791892-Developer-Platform-Accessing-Reddit-Data) | Approved access flag, client ID, client secret, and descriptive user agent |
 
-Mastodon's unauthenticated integration searches hashtag timelines and may return no results when the topic has no discoverable hashtags. Bluesky search coverage depends on endpoint availability. Partial failures remain visible alongside successful results.
+Bluesky and Mastodon are the default social sources. Mastodon coverage depends on discoverable hashtags and the instance's public timeline. Bluesky coverage depends on its search index. The server returns available posts alongside per-provider errors. News and geopolitical query results are cached for 15 minutes and social search for five minutes in the Express process.
 
-Reddit's public RSS support ended November 13, 2026, and Pushshift access is restricted to approved moderation uses. The dashboard's **Search on Reddit** link opens Reddit for manual review. It does not collect posts into the research report. [Reddit RSS announcement](https://www.reddit.com/r/modnews/comments/1xuj8jp/mod_monthly_your_november_2026_newsletter_is_here/), [Pushshift access](https://support.reddithelp.com/hc/en-us/articles/16470271632404-Pushshift-Access-Request).
+**Search on Reddit** opens a topic search for manual review in a new tab. Automated Reddit collection is gated by `REDDIT_APPROVED_ACCESS=true` and valid credentials. The separate Reddit for Researchers program offers academic access under its own approval and data rules. Review the permissions for collection, model processing, storage, and export before enabling the adapter. [Reddit developer access](https://support.reddithelp.com/hc/en-us/articles/14945211791892-Developer-Platform-Accessing-Reddit-Data) · [Reddit for Researchers](https://support.reddithelp.com/hc/en-us/articles/49381918834964-Reddit-for-Researchers-Program)
 
-For approved noncommercial academic projects, [Reddit for Researchers](https://support.reddithelp.com/hc/en-us/articles/49381918834964-Reddit-for-Researchers-Program) provides historical data through BigQuery with a six-month delay and project-specific limits. For other integrations, [request access from Reddit](https://support.reddithelp.com/hc/en-us/articles/14945211791892-Developer-Platform-Accessing-Reddit-Data). Before enabling the OAuth adapter, confirm that the approval covers NarrativeX's collection, processing by model providers, storage and export. Apply the retention and deletion rules in the approval before importing any data.
-
-The evaluator selects at most eight documents for analysis, attempting to preserve a four-news/four-social split. News providers may return excerpts rather than full articles, and public social search does not expose private or restricted posts. The dashboard's geopolitical map is a keyword-based illustration as described above.
+Research uses a single bounded collection per investigation and up to eight selected documents. The report may contain article excerpts and public posts visible to the provider. Broader observations require a defined collection period, repeated sampling, and evidence about which sources and dates the queries covered.
 
 ## API surface
 
-The browser talks to the NarrativeX server, not the AI service.
+Express data routes accept `Authorization: Bearer <NarrativeX JWT>`. NextAuth uses the auth routes to establish the browser session.
 
 | Method and path | Access | Purpose |
 | --- | --- | --- |
+| `GET /health` | Public | Check that Express is responding |
 | `POST /api/auth/signup` | Public | Create a credentials account |
 | `POST /api/auth/signin` | Public | Sign in and receive the server JWT |
-| `POST /api/auth/google` | Public | Resolve Google identity to a NarrativeX account/JWT |
+| `POST /api/auth/google` | Public | Exchange the profile sent by the NextAuth callback for a NarrativeX account and JWT |
+| `POST /api/auth/signout` | Public | Acknowledge sign-out. NextAuth handles the browser session |
 | `GET /api/news/search?q=...` | JWT | Search normalized news articles |
 | `POST /api/social/search` | JWT | Search social providers with `topics`, optional `platforms`, and `limit` |
 | `GET /api/events/geopolitics?limit=...` | JWT | Return keyword-matched headlines for the dashboard map |
 | `GET/POST /api/conversation` | JWT | List or create a user's conversations |
+| `PUT /api/conversation/rename/:conversationId` | JWT | Rename an owned conversation |
+| `DELETE /api/conversation/:conversationId` | JWT | Delete an owned conversation and its messages |
 | `GET/POST /api/conversation/chat/:conversationId` | JWT | Load messages or submit a question and receive a saved report |
 | `GET /api/conversation/report/:conversationId` | JWT | Export a conversation report as PDF |
-| `POST /api/agent/query` | Internal service call | Run the AI workflow; clients should use conversation routes instead |
+| `POST /api/agent/query` on port `8001` | Service-to-service | Run the AI workflow for Express |
+| `GET /health` on port `8001` | AI service | Check that FastAPI is responding |
 
 For social search, the server accepts a body like:
 
@@ -224,13 +228,15 @@ For social search, the server accepts a body like:
 }
 ```
 
-The social response returns normalized `posts` and per-provider `errors`. Omit `platforms` to search all configured sources.
+The social response returns normalized `posts` and per-provider `errors`. Omit `platforms` to select the server defaults. Each request accepts up to ten topic strings, each up to 100 characters, and a `limit` from 1 to 25.
 
 ## Local development
 
-Requirements: Bun, Python 3.12 (or a version supported by the pinned dependencies), and a PostgreSQL database compatible with the Prisma contract.
+The native workflow uses Bun for the client and API, Python 3.12 in the Conda environment `narrativex-venv`, and an external PostgreSQL database. Run the commands below from the repository root unless a code block changes directories.
 
-Copy the example environment files and configure the database, auth secrets, and provider keys:
+### Configure the environment
+
+Copy the templates on a fresh checkout. Keep your existing files when updating a configured checkout.
 
 ```bash
 cp client/.env.example client/.env
@@ -238,57 +244,62 @@ cp server/.env.example server/.env
 cp service/.env.example service/.env
 ```
 
-Set `server/.env`'s `DATABASE_URL` to your PostgreSQL instance. Replace the example `JWT_SECRET` and `NEXTAUTH_SECRET` with private random values. Configure `NVIDIA_API_KEY` for research planning, analysis, judging, and embeddings. Configure `GROQ_API_KEY` for general conversation. `NEWS_API_KEY` enables NewsAPI. Google News RSS, Bluesky, and Mastodon do not require keys in the current adapters.
+| File | Required settings for the selected workflow | Optional settings |
+| --- | --- | --- |
+| [Client template](client/.env.example) | A private `NEXTAUTH_SECRET`. Use `NEXT_PUBLIC_HTTP_SERVER_BASE_URL=http://localhost:9000` for the native API. | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `NEXTAUTH_URL` for the public client origin when needed |
+| [Server template](server/.env.example) | `DATABASE_URL` and a private `JWT_SECRET`. Set `MICROSERVICE_BASE_URL=http://localhost:8001` for the native AI service. | `PORT`, `NEWS_API_KEY`, and the approved Reddit settings in the template |
+| [Service template](service/.env.example) | `NVIDIA_API_KEY` for research or `GROQ_API_KEY` for general chat. Set both for the full workflow. Use `SERVER_BASE_URL=http://localhost:9000` for authenticated retrieval. | `PORT`, `HOST`, `ALLOWED_ORIGINS`, and Nemotron generation settings in the model configuration |
 
-Install and start each service in its own terminal from the repository root:
+Use separate private random values for the server JWT and NextAuth secrets. For Google sign-in, register `http://localhost:3000/api/auth/callback/google` as an authorized redirect URI and use the equivalent callback on the actual client origin if it differs. [NextAuth Google provider](https://next-auth.js.org/providers/google) · [NextAuth options](https://next-auth.js.org/configuration/options#nextauth_url)
+
+### Prepare PostgreSQL and start the services
+
+Start each service in its own terminal. Point `DATABASE_URL` at your development database and verify that it satisfies the Prisma contract. For a fresh database, review the proposed schema changes in the dry run before applying them.
 
 ```bash
 cd server
-bun install
+bun install --frozen-lockfile
+bun run contract:emit
+bun run db:update --dry-run
+bun run db:update
+bun run db:sign --no-advance-ref
 bun run dev
 ```
 
 ```bash
 cd service
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
-uvicorn app:app --host 0.0.0.0 --port 8001 --reload
+conda create -n narrativex-venv python=3.12
+conda run -n narrativex-venv python -m pip install -r requirements.txt
+conda run --no-capture-output -n narrativex-venv python app.py
 ```
 
 ```bash
 cd client
-bun install
+bun install --frozen-lockfile
 bun run dev
 ```
 
-The client is at `http://localhost:3000`, the API is at `http://localhost:9000`, and the AI service is at `http://localhost:8001`. Port `8000` is available for VA POC. For an existing local setup, set `PORT=8001` in `service/.env` and `MICROSERVICE_BASE_URL=http://localhost:8001` in `server/.env`. The AI service still collects sources through the API on port `9000`.
+Reuse `narrativex-venv` if you already created it. The client is at `http://localhost:3000`, the API at `http://localhost:9000`, and the AI service at `http://localhost:8001`. The AI port leaves `8000` available for VA POC.
 
-For database setup or contract changes, review [`server/src/prisma/contract.prisma`](server/src/prisma/contract.prisma) and the available scripts in [`server/package.json`](server/package.json). The repository currently does not include a PostgreSQL container or a seed dataset.
-
-### Environment variables
-
-| File | Important settings |
-| --- | --- |
-| `client/.env` | `NEXT_PUBLIC_HTTP_SERVER_BASE_URL`, `NEXTAUTH_SECRET`, optional Google OAuth client ID and secret |
-| `server/.env` | `PORT`, `DATABASE_URL`, `JWT_SECRET`, optional `NEWS_API_KEY` and approved Reddit settings |
-| `service/.env` | `PORT`, `SERVER_BASE_URL`, `NVIDIA_API_KEY`, `GROQ_API_KEY` |
-
-Provider model IDs are not environment variables. They are defined in `service/config/models.py`.
+For a remote PostgreSQL server that requires TLS, use the connection details provided by the host. NarrativeX normalizes the PostgreSQL client modes `prefer`, `require`, and `verify-ca` to `verify-full` to preserve certificate and hostname verification. [Prisma contract](server/src/prisma/contract.prisma) · [Server configuration](server/src/lib/config.ts)
 
 ## Docker Compose (optional)
 
-The default workflow above runs the services natively. Compose is available for users who want containerized application services:
+[Docker Compose](docker-compose.yml) builds the three application services from the Dockerfiles in [`docker/`](docker/). Prepare the same database and service settings as for native development, with these networking differences.
+
+- Use a `DATABASE_URL` reachable from the server container. The database is supplied separately.
+- Set `NEXT_PUBLIC_HTTP_SERVER_BASE_URL` in the shell or Compose's root `.env` so it is available at build time, and match it in `client/.env`. Use an API URL reachable from both the browser and the client container, because NextAuth also uses it for server-side calls. A browser's `localhost` and a container's `localhost` refer to different hosts.
+- Compose sets Express-to-AI traffic to `http://service:8001` and AI-to-Express tool calls to `http://server:9000`. External access uses the published client and API ports, `3000` and `9000` by default. Override them with `CLIENT_HOST_PORT` and `SERVER_HOST_PORT` and update the external URLs accordingly.
 
 ```bash
 docker compose up --build
 ```
 
-Compose reads the three `.env` files. PostgreSQL is not included, so `DATABASE_URL` must point to a database reachable from the server container; `localhost` inside a container refers to that container. The AI service is private to the Compose network, while the client and API publish ports `3000` and `9000` by default. `CLIENT_HOST_PORT` and `SERVER_HOST_PORT` can override the host ports.
+The Compose layout keeps FastAPI on the application network. For a public deployment, enforce provider identity verification on the Express Google account exchange. The current exchange relies on the NextAuth callback for that verification.
 
 ## Verification
 
-Run the server checks:
+Run the Express provider, controller, and PDF tests and build the server.
 
 ```bash
 cd server
@@ -296,29 +307,65 @@ bun test
 bun run build
 ```
 
-Run the service checks:
+Run the Python tests for research tooling, evidence validation, graph construction, metrics, and the social timeline.
 
 ```bash
 cd service
-python -m unittest discover -s tests -v
+conda run -n narrativex-venv python -m unittest discover -s tests -v
 ```
 
-Run the client lint and production build:
+Check graph artifact parsing, client lint, and the production build.
 
 ```bash
 cd client
+bun test scripts/research-graph.test.ts
 bun run lint
 bun run build
 ```
 
-Static checks do not verify access to third-party providers or model APIs. Live results depend on configured credentials, provider availability, and model access.
+The [public UI smoke](client/scripts/ui-smoke.mjs) and [dashboard smoke](client/scripts/dashboard-smoke.mjs) export Playwright routines. The dashboard routine uses a test session and intercepted data API responses. The `/health` routes on the API and AI service check process availability. An authenticated research question exercises retrieval, model access, persistence, and the workspace together.
+
+### Provider-backed research diagnostic
+
+Run this from the repository root with a configured NVIDIA key.
+
+```bash
+cd service
+conda run --no-capture-output -n narrativex-venv python verify_research.py
+```
+
+The [diagnostic](service/verify_research.py) classifies the first comparison in each of [five synthetic cases](service/tests/research_cases.json) covering agreement, negation, numerical conflict, scope conflict, and unrelated topics. It reports per-label precision and recall and macro-F1. A provider failure exits nonzero and records completed cases without an aggregate score. This protocol measures the configured analyzer on the fixture cases. Live retrieval coverage and real-world accuracy require separate evaluations.
+
+On November 25, 2026, a live Research Studio investigation retrieved news and social evidence for the EU AI Act and displayed matching framing in two Bluesky posts thirteen days apart. The first analysis timed out and completed on retry. Mobile, full-screen, and PDF checks preserved the dated comparison and both excerpts. A separate controlled NVIDIA probe classified a direct contradiction. These checks cover specific workflows and examples. See the [timeline test cases](service/tests/test_social_timeline.py) for deterministic coverage.
+
+## Research roadmap
+
+The current timeline compares adjacent posts in the brief's selected evidence. The next proposed version follows the same claim across intervening posts and gives researchers better visibility into the sampling window.
+
+1. **Timeline-specific retrieval.** Query a small set of fixed date windows, record provider coverage and failures, and deduplicate by stable post ID. Bluesky's search timestamps can differ from record creation times. Mastodon hashtag timelines use ID pagination. Window assignment should use validated post timestamps. [Bluesky search contract](https://github.com/bluesky-social/bsky/blob/main/lexicons/app/bsky/feed/searchPosts.json) · [Mastodon timelines](https://docs.joinmastodon.org/methods/timelines/#tag)
+2. **Track a claim across time.** Shortlist nonadjacent mentions with lexical and semantic similarity, then verify proposition, scope, dates, and negation before linking them. Keep publication time separate from the date mentioned in a claim. [When Claims Evolve](https://aclanthology.org/2025.findings-acl.1150/) · [MultiClaimNet](https://aclanthology.org/2025.findings-emnlp.599/)
+3. **Link timeline and graph inspection.** Show news and social evidence on parallel lanes in the Evidence Workspace. Selecting a transition opens both excerpts using the same source IDs. Explicit reply, quote, or repost metadata could support separate interaction edges. [newsLens](https://aclanthology.org/W17-2701/)
+4. **Evaluate changes on held-out events.** Compare against the current adjacent-post method using human-labeled examples. Measure same-claim link precision and recall, relation macro-F1, excerpt attribution, reviewer agreement on the interpretation, and abstention coverage. Include corrections, repeated copies, missing dates, and unrelated posts between relevant mentions. [RumourEval](https://aclanthology.org/S19-2147/)
 
 ## Project layout
 
 ```text
-client/   Next.js app, auth pages, dashboard, research chat, PDF client
-server/   Express routes/controllers, provider adapters, Prisma contract, PDF generation
-service/  FastAPI routes, LangGraph, research tools, evaluation and mathematical metrics
-docker/   Service Dockerfiles
-compose.yaml
+client/
+  src/app/                   Pages, NextAuth, and dashboard routes
+  src/components/dashboard/  Intelligence Desk, chat, graph, and timeline UI
+  src/lib/                   API client, Markdown, and artifact parser
+  scripts/                   Browser smokes and artifact parsing test
+server/
+  src/routes/                API routes and auth boundary
+  src/controllers/           Account, feed, conversation, and report handlers
+  src/services/              Provider adapters, caching, AI client, and PDF rendering
+  src/prisma/                PostgreSQL contract and runtime client
+service/
+  agents/                    LangGraph routing and research tool planning
+  tools/                     Authenticated calls to the Express API
+  models/ and config/        Provider adapters, model IDs, and prompts
+  schemas/ and services/     Evidence, timeline, graph, judging, and metrics
+  tests/                     Unit tests and labeled diagnostic fixtures
+docker/                      Client, API, and AI service Dockerfiles
+docker-compose.yml            Application service wiring
 ```
