@@ -102,6 +102,12 @@ The design draws on [evidence-graph reasoning for fact checking](https://aclanth
 
 For backward-compatible persistence, the brief stores a version-1 graph artifact in a `narrativex-graph` Markdown fence. The client validates that artifact before rendering it. Copying the brief, exporting its PDF, and sending prior messages to the model omit the storage block; the human-readable verification priorities remain in the report. Older saved briefs continue to display normally and acquire a graph only when a new analysis is generated. Graphs currently describe one report's selected evidence, not an accumulated longitudinal corpus.
 
+### Social narrative timeline
+
+Ask “How did the narrative about AI regulation change across recent social posts?” Each new research brief orders its selected social evidence by source-reported publication time in UTC. The model compares adjacent posts on the same issue and identifies repetition, added detail, reframing, or a challenge. Each retained interpretation links to the posts and shows an exact excerpt from each. The panel reports how many selected posts have usable times and text, and how many adjacent pairs support a comparison. Tied timestamps do not establish a sequence between those posts. The timeline also appears in copied briefs and PDF exports.
+
+The design draws on sequential social-media stance analysis and longitudinal semantic-shift research. NarrativeX uses a bounded, query-selected sample, so the results describe differences between the retrieved posts. Estimating population trends or tracing transmission would require broader dated sampling or explicit interaction records. [Zubiaga et al.](https://aclanthology.org/C16-1230/) [Wang et al.](https://aclanthology.org/2024.findings-emnlp.193/)
+
 ## Models
 
 Model IDs are kept in [`service/config/models.py`](service/config/models.py), not environment variables.

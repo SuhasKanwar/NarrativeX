@@ -79,9 +79,12 @@ function ResearchBrief({ message, question, onInvestigate }: {
   const artifact = readResearchArtifact(message.content || "");
   const incomplete = artifact.graph?.state === "incomplete" ||
     /^# (Retrieved sources|Research could not be completed)\b/.test(artifact.report);
-  const detailsStart = artifact.graph && !incomplete ? artifact.report.indexOf("\n## News vs social") : -1;
-  const overview = detailsStart >= 0 ? artifact.report.slice(0, detailsStart) : "";
-  const report = detailsStart >= 0 ? artifact.report.slice(detailsStart) : artifact.report;
+  const timelineStart = artifact.graph ? artifact.report.lastIndexOf("\n## Social narrative timeline\n") : -1;
+  const timeline = timelineStart >= 0 ? artifact.report.slice(timelineStart) : "";
+  const narrative = timelineStart >= 0 ? artifact.report.slice(0, timelineStart) : artifact.report;
+  const detailsStart = artifact.graph && !incomplete ? narrative.indexOf("\n## News vs social") : -1;
+  const overview = detailsStart >= 0 ? narrative.slice(0, detailsStart) : "";
+  const report = detailsStart >= 0 ? narrative.slice(detailsStart) : narrative;
   function investigate(nextQuestion: string) {
     dialog.current?.close();
     onInvestigate(nextQuestion);
@@ -124,6 +127,14 @@ function ResearchBrief({ message, question, onInvestigate }: {
       </header>
   );
 
+  const timelinePanel = timeline && (
+    <section
+      aria-label="Social narrative timeline"
+      className="mx-3 my-5 rounded-2xl border border-border bg-surface p-4 text-sm leading-6 wrap-break-word motion-safe:animate-chat-turn sm:mx-6 sm:p-5 [&_a]:text-focus [&_a]:underline [&_a]:underline-offset-4 [&_blockquote]:my-2 [&_blockquote]:border-s-2 [&_blockquote]:border-border [&_blockquote]:ps-3 [&_blockquote]:text-muted [&_h2]:mb-3 [&_h2]:font-editorial [&_h2]:text-2xl [&_ol]:mt-5 [&_ol]:ms-1.5 [&_ol]:border-s [&_ol]:border-accent [&_ol>li]:relative [&_ol>li]:pb-5 [&_ol>li]:ps-4 [&_ol>li:last-child]:pb-0 [&_ol>li]:before:absolute [&_ol>li]:before:start-0 [&_ol>li]:before:top-2 [&_ol>li]:before:size-2 [&_ol>li]:before:-translate-x-1/2 [&_ol>li]:before:rounded-full [&_ol>li]:before:bg-accent [&_p+p]:mt-2"
+      dangerouslySetInnerHTML={{ __html: md.render(timeline) }}
+    />
+  );
+
   const body = (
     <>
       {overview && <div className="space-y-3 px-6 pt-6 text-sm leading-7 [&_h1]:font-editorial [&_h1]:text-3xl"
@@ -134,11 +145,13 @@ function ResearchBrief({ message, question, onInvestigate }: {
           Retry this question
         </button>
       )}
+      {!incomplete && timelinePanel}
       {!incomplete && artifact.graph && <EvidenceExplorer graph={artifact.graph} onInvestigate={investigate} />}
       <div
         className="max-w-none break-words p-6 text-sm leading-7 [&_a]:text-focus [&_a]:underline [&_a]:underline-offset-4 [&_blockquote]:my-4 [&_blockquote]:border-l-2 [&_blockquote]:border-accent [&_blockquote]:pl-4 [&_h1]:mb-5 [&_h1]:font-editorial [&_h1]:text-3xl [&_h2]:my-5 [&_h2]:text-xl [&_h3]:my-4 [&_h3]:font-semibold [&_li]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-3 [&_pre]:overflow-auto [&_pre]:rounded-lg [&_pre]:bg-surface [&_pre]:p-4 [&_table]:my-5 [&_table]:block [&_table]:w-max [&_table]:min-w-full [&_table]:max-w-full [&_table]:overflow-x-auto [&_table]:border-collapse [&_table]:text-left [&_thead]:bg-surface [&_tbody_tr:nth-child(even)]:bg-surface/50 [&_td]:max-w-[420px] [&_td]:whitespace-normal [&_td]:border [&_td]:border-border [&_td]:align-top [&_td]:p-3 [&_th]:whitespace-nowrap [&_th]:border [&_th]:border-border [&_th]:p-3 [&_ul]:list-disc [&_ul]:pl-5"
         dangerouslySetInnerHTML={{ __html: md.render(report) }}
       />
+      {incomplete && timelinePanel}
       {incomplete && !!artifact.graph?.nodes.length && <EvidenceExplorer graph={artifact.graph} onInvestigate={investigate} />}
       {error && (
         <p role="alert" className="px-6 pb-4 text-xs text-error">
