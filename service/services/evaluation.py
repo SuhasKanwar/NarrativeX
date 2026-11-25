@@ -10,6 +10,7 @@ from schemas.evaluation import EvaluationResult, EvidenceDocument, JudgeAssessme
 from services.metrics import MetricsEvaluator, rank_documents
 from services.evidence_graph import build_evidence_graph, graph_report
 from services.evidence_validation import validate_evidence
+from services.social_timeline import social_timeline_report
 from utils.exception import NarrativeXException
 from utils.logger import logger
 
@@ -42,14 +43,16 @@ class EvaluationService:
             except NarrativeXException:
                 return self.fallback(sources, "The inference model failed on both attempts.", query)
         analysis = validate_evidence(raw, documents)
-        with ThreadPoolExecutor(max_workers=2) as executor:
+        with ThreadPoolExecutor(max_workers=3) as executor:
             metrics_task = executor.submit(self.metrics.evaluate, query, documents, analysis)
+            timeline_task = executor.submit(social_timeline_report, query, documents, self.model)
             try:
                 judge = self._judge(query, documents, analysis)
             except NarrativeXException:
                 logger.warning("Judge unavailable; retaining validated findings and evidence graph")
                 judge = None
             metrics = metrics_task.result()
+            timeline = timeline_task.result()
         quality_score = round(
             0.25 * judge.groundedness
             + 0.15 * judge.answer_relevance
@@ -65,7 +68,7 @@ class EvaluationService:
         research = _summarize_sources(sources)
         return {
             "reasoning": "",
-            "response": _render_report(analysis, evaluation, documents, research, query),
+            "response": _render_report(analysis, evaluation, documents, research, query, timeline),
             "research": research,
             "analysis": analysis.model_dump(),
             "evaluation": evaluation.model_dump(),
@@ -197,6 +200,7 @@ ANALYSIS TO JUDGE:
         graph = build_evidence_graph(NarrativeAnalysis(summary=reason, comparisons=[]), documents)
         graph["state"] = "incomplete"
         graph["provenance"]["query"] = query
+        lines.extend(social_timeline_report(query, documents, self.model))
         lines.extend(_graph_block(graph))
         return {
             "reasoning": "",
@@ -302,7 +306,8 @@ def _render_report(
     evaluation: EvaluationResult,
     documents: list[EvidenceDocument],
     research: dict[str, Any],
-    query: str = "",
+    query: str,
+    timeline: list[str],
 ) -> str:
     known_urls = {document.url for document in documents}
     news_urls = {document.url for document in documents if document.source_type == "news"}
@@ -403,6 +408,7 @@ def _render_report(
     graph["provenance"].update({"query": query, "evaluationModel": NEMOTRON["MODEL_NAME"],
                                 "evaluation": evaluation.model_dump(), "analysis": analysis.model_dump()})
     lines.extend(graph_report(graph))
+    lines.extend(timeline)
     lines.extend(_graph_block(graph))
     return "\n".join(lines)
 

@@ -110,7 +110,7 @@ export async function fetchBluesky(topic: string, limit: number): Promise<Social
       url: `https://bsky.app/profile/${post.author?.handle}/post/${postId}`,
       externalUrl: post.embed?.external?.uri || null,
       community: null,
-      publishedAt: record.createdAt || post.indexedAt,
+      publishedAt: record.createdAt || "",
       engagement: {
         comments: post.replyCount || 0,
         likes: post.likeCount || 0,

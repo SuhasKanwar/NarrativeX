@@ -49,7 +49,7 @@ class EvaluationFallbackTest(unittest.TestCase):
             "topic": "AI policy",
             "calls": [{"data": {"articles": [{"url": "https://news.example/off-topic", "title": "Xbox trade-in"}]}}, *SOURCES["calls"]],
         }
-        result = EvaluationService.__new__(EvaluationService).fallback(sources)
+        result = EvaluationService(Mock()).fallback(sources)
 
         self.assertIn("https://news.example/0", result["response"])
         self.assertIn("https://social.example/0", result["response"])

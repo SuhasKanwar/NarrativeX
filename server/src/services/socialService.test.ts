@@ -1,8 +1,19 @@
 import { afterEach, expect, test } from "bun:test";
-import { fetchSocialPosts } from "./socialService";
+import { fetchBluesky, fetchSocialPosts } from "./socialService";
 
 const realFetch = globalThis.fetch;
 afterEach(() => { globalThis.fetch = realFetch; });
+
+test("Bluesky publication time comes from the post record", async () => {
+  const indexedAt = "2026-11-25T09:00:00Z";
+  const createdAt = "2026-11-24T09:00:00Z";
+  globalThis.fetch = (async () => Response.json({ posts: [
+    { uri: "at://example/post/1", record: { createdAt }, indexedAt },
+    { uri: "at://example/post/2", record: {}, indexedAt },
+  ] })) as typeof fetch;
+
+  expect((await fetchBluesky("timeline", 2)).map(post => post.publishedAt)).toEqual([createdAt, ""]);
+});
 
 test("normalizes posts and reports a failed source without losing successful data", async () => {
   globalThis.fetch = (async (input) => {
